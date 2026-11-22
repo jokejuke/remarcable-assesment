@@ -1,0 +1,34 @@
+{% extends "catalog/base.html" %}
+{% load money %}
+{% block title %}My orders · Product Catalog{% endblock %}
+{% block body %}
+<div class="layout single">
+  <main>
+    <h1>My orders</h1>
+    {% include "catalog/_messages.html" %}
+    {% for order in orders %}
+      <section class="order">
+        <h3>Order #{{ order.pk }} <span class="muted">· {{ order.created_at|unixtime }}</span></h3>
+        <table>
+          <thead><tr><th>Product</th><th>Quantity</th><th>Unit price</th><th>Subtotal</th></tr></thead>
+          <tbody>
+            {% for item in order.items.all %}
+              <tr><td>{{ item.product.name }}</td><td>{{ item.quantity }}</td><td>{{ item.unit_price_cents|money }}</td><td>{{ item.line_total_cents|money }}</td></tr>
+            {% endfor %}
+          </tbody>
+          <tfoot><tr><th colspan="3">Total</th><th class="total">{{ order.total_cents|money }}</th></tr></tfoot>
+        </table>
+      </section>
+    {% empty %}
+      <p>You haven't placed any orders yet.</p>
+    {% endfor %}
+    {% if is_paginated %}
+      <nav class="pagination">
+        {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}">← Newer</a>{% endif %}
+        <span>Page {{ page_obj.number }} of {{ paginator.num_pages }}</span>
+        {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}">Older →</a>{% endif %}
+      </nav>
+    {% endif %}
+  </main>
+</div>
+{% endblock %}

@@ -1,0 +1,728 @@
+[
+{
+  "model": "catalog.category",
+  "pk": 1,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364221,
+    "name": "Electronics",
+    "parent": null,
+    "has_products": false,
+    "has_subcategories": true
+  }
+},
+{
+  "model": "catalog.category",
+  "pk": 2,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364221,
+    "name": "Audio",
+    "parent": 1,
+    "has_products": false,
+    "has_subcategories": true
+  }
+},
+{
+  "model": "catalog.category",
+  "pk": 3,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364221,
+    "name": "Headphones",
+    "parent": 2,
+    "has_products": true,
+    "has_subcategories": false
+  }
+},
+{
+  "model": "catalog.category",
+  "pk": 4,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364221,
+    "name": "Speakers",
+    "parent": 2,
+    "has_products": true,
+    "has_subcategories": false
+  }
+},
+{
+  "model": "catalog.category",
+  "pk": 5,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364221,
+    "name": "Computers",
+    "parent": 1,
+    "has_products": false,
+    "has_subcategories": true
+  }
+},
+{
+  "model": "catalog.category",
+  "pk": 6,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364221,
+    "name": "Laptops",
+    "parent": 5,
+    "has_products": true,
+    "has_subcategories": false
+  }
+},
+{
+  "model": "catalog.category",
+  "pk": 7,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364221,
+    "name": "Accessories",
+    "parent": 5,
+    "has_products": true,
+    "has_subcategories": false
+  }
+},
+{
+  "model": "catalog.category",
+  "pk": 8,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364221,
+    "name": "Phones",
+    "parent": 1,
+    "has_products": true,
+    "has_subcategories": false
+  }
+},
+{
+  "model": "catalog.category",
+  "pk": 9,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364221,
+    "name": "Home & Kitchen",
+    "parent": null,
+    "has_products": false,
+    "has_subcategories": true
+  }
+},
+{
+  "model": "catalog.category",
+  "pk": 10,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364221,
+    "name": "Kitchen Appliances",
+    "parent": 9,
+    "has_products": true,
+    "has_subcategories": false
+  }
+},
+{
+  "model": "catalog.category",
+  "pk": 11,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364221,
+    "name": "Furniture",
+    "parent": 9,
+    "has_products": true,
+    "has_subcategories": false
+  }
+},
+{
+  "model": "catalog.category",
+  "pk": 12,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364221,
+    "name": "Books",
+    "parent": null,
+    "has_products": false,
+    "has_subcategories": true
+  }
+},
+{
+  "model": "catalog.category",
+  "pk": 13,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364221,
+    "name": "Fiction",
+    "parent": 12,
+    "has_products": true,
+    "has_subcategories": false
+  }
+},
+{
+  "model": "catalog.category",
+  "pk": 14,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364221,
+    "name": "Non-fiction",
+    "parent": 12,
+    "has_products": true,
+    "has_subcategories": false
+  }
+},
+{
+  "model": "catalog.category",
+  "pk": 15,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364221,
+    "name": "Sports & Outdoors",
+    "parent": null,
+    "has_products": true,
+    "has_subcategories": false
+  }
+},
+{
+  "model": "catalog.tag",
+  "pk": 1,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364221,
+    "name": "wireless"
+  }
+},
+{
+  "model": "catalog.tag",
+  "pk": 2,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364221,
+    "name": "bluetooth"
+  }
+},
+{
+  "model": "catalog.tag",
+  "pk": 3,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364221,
+    "name": "budget"
+  }
+},
+{
+  "model": "catalog.tag",
+  "pk": 4,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364221,
+    "name": "premium"
+  }
+},
+{
+  "model": "catalog.tag",
+  "pk": 5,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364221,
+    "name": "portable"
+  }
+},
+{
+  "model": "catalog.tag",
+  "pk": 6,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364221,
+    "name": "noise-cancelling"
+  }
+},
+{
+  "model": "catalog.tag",
+  "pk": 7,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364221,
+    "name": "gaming"
+  }
+},
+{
+  "model": "catalog.tag",
+  "pk": 8,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364221,
+    "name": "eco-friendly"
+  }
+},
+{
+  "model": "catalog.tag",
+  "pk": 9,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364221,
+    "name": "bestseller"
+  }
+},
+{
+  "model": "catalog.tag",
+  "pk": 10,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364221,
+    "name": "gift-idea"
+  }
+},
+{
+  "model": "catalog.tag",
+  "pk": 11,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364221,
+    "name": "waterproof"
+  }
+},
+{
+  "model": "catalog.tag",
+  "pk": 12,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364221,
+    "name": "new-arrival"
+  }
+},
+{
+  "model": "catalog.product",
+  "pk": 1,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364221,
+    "name": "Aurora ANC Headphones",
+    "description": "Over-ear wireless headphones with adaptive noise cancelling and 30-hour battery life.",
+    "price_cents": 24900,
+    "items_available": 12,
+    "category": 3,
+    "tags": [
+      2,
+      6,
+      4,
+      1
+    ]
+  }
+},
+{
+  "model": "catalog.product",
+  "pk": 2,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364221,
+    "name": "Pebble Wireless Earbuds",
+    "description": "Compact true-wireless earbuds with a pocket charging case. Great value for everyday listening.",
+    "price_cents": 3900,
+    "items_available": 40,
+    "category": 3,
+    "tags": [
+      2,
+      3,
+      5,
+      1
+    ]
+  }
+},
+{
+  "model": "catalog.product",
+  "pk": 3,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364221,
+    "name": "Studio Monitor Headphones",
+    "description": "Closed-back wired headphones with a flat, accurate sound for mixing and recording.",
+    "price_cents": 12900,
+    "items_available": 7,
+    "category": 3,
+    "tags": [
+      9,
+      4
+    ]
+  }
+},
+{
+  "model": "catalog.product",
+  "pk": 4,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364221,
+    "name": "Kids Safe Headphones",
+    "description": "Volume-limited wired headphones for children, in bright colours.",
+    "price_cents": 1900,
+    "items_available": 0,
+    "category": 3,
+    "tags": [
+      3,
+      10
+    ]
+  }
+},
+{
+  "model": "catalog.product",
+  "pk": 5,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364221,
+    "name": "Boom Go Speaker",
+    "description": "Rugged portable bluetooth speaker, waterproof and dustproof, with 12 hours of playback.",
+    "price_cents": 7900,
+    "items_available": 25,
+    "category": 4,
+    "tags": [
+      2,
+      5,
+      11,
+      1
+    ]
+  }
+},
+{
+  "model": "catalog.product",
+  "pk": 6,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364221,
+    "name": "Living Room Soundbar",
+    "description": "Slim soundbar with wireless subwoofer and dialogue enhancement for TV and films.",
+    "price_cents": 29900,
+    "items_available": 5,
+    "category": 4,
+    "tags": [
+      12,
+      4,
+      1
+    ]
+  }
+},
+{
+  "model": "catalog.product",
+  "pk": 7,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364221,
+    "name": "Featherlight 13 Laptop",
+    "description": "13-inch ultralight laptop with all-day battery, 16 GB memory and a 512 GB SSD.",
+    "price_cents": 99900,
+    "items_available": 8,
+    "category": 6,
+    "tags": [
+      9,
+      5,
+      4
+    ]
+  }
+},
+{
+  "model": "catalog.product",
+  "pk": 8,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364221,
+    "name": "Raptor 16 Gaming Laptop",
+    "description": "16-inch gaming laptop with a high refresh rate display and a dedicated graphics card.",
+    "price_cents": 189900,
+    "items_available": 3,
+    "category": 6,
+    "tags": [
+      7,
+      12,
+      4
+    ]
+  }
+},
+{
+  "model": "catalog.product",
+  "pk": 9,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364221,
+    "name": "Everyday 15 Laptop",
+    "description": "Reliable 15-inch laptop for study and office work, with a full-size keyboard.",
+    "price_cents": 54900,
+    "items_available": 15,
+    "category": 6,
+    "tags": [
+      9,
+      3
+    ]
+  }
+},
+{
+  "model": "catalog.product",
+  "pk": 10,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364221,
+    "name": "Silent Wireless Mouse",
+    "description": "Quiet-click wireless mouse with a USB receiver and 18-month battery life.",
+    "price_cents": 2500,
+    "items_available": 60,
+    "category": 7,
+    "tags": [
+      9,
+      3,
+      1
+    ]
+  }
+},
+{
+  "model": "catalog.product",
+  "pk": 11,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364221,
+    "name": "Mechanical Gaming Keyboard",
+    "description": "RGB mechanical keyboard with hot-swappable switches and a detachable cable.",
+    "price_cents": 8900,
+    "items_available": 20,
+    "category": 7,
+    "tags": [
+      7,
+      12
+    ]
+  }
+},
+{
+  "model": "catalog.product",
+  "pk": 12,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364271,
+    "name": "USB-C Travel Hub",
+    "description": "7-in-1 USB-C hub with HDMI, card reader and pass-through charging.",
+    "price_cents": 4500,
+    "items_available": 0,
+    "category": 7,
+    "tags": [
+      3,
+      5
+    ]
+  }
+},
+{
+  "model": "catalog.product",
+  "pk": 13,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364221,
+    "name": "Nova 5G Phone",
+    "description": "Flagship 5G smartphone with a triple camera, water resistance and wireless charging.",
+    "price_cents": 79900,
+    "items_available": 10,
+    "category": 8,
+    "tags": [
+      12,
+      4,
+      11
+    ]
+  }
+},
+{
+  "model": "catalog.product",
+  "pk": 14,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364221,
+    "name": "Basic Smartphone",
+    "description": "Affordable smartphone with a big battery, dual SIM and bluetooth 5.",
+    "price_cents": 14900,
+    "items_available": 30,
+    "category": 8,
+    "tags": [
+      2,
+      3
+    ]
+  }
+},
+{
+  "model": "catalog.product",
+  "pk": 15,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364221,
+    "name": "Precision Air Fryer",
+    "description": "5-litre air fryer with digital presets for crispy results with little oil.",
+    "price_cents": 11900,
+    "items_available": 18,
+    "category": 10,
+    "tags": [
+      9,
+      10
+    ]
+  }
+},
+{
+  "model": "catalog.product",
+  "pk": 16,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364221,
+    "name": "Bamboo Cutting Board Set",
+    "description": "Set of three bamboo cutting boards in different sizes, with juice grooves.",
+    "price_cents": 2900,
+    "items_available": 50,
+    "category": 10,
+    "tags": [
+      3,
+      8,
+      10
+    ]
+  }
+},
+{
+  "model": "catalog.product",
+  "pk": 17,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364271,
+    "name": "Barista Espresso Machine",
+    "description": "Semi-automatic espresso machine with a steam wand and built-in grinder.",
+    "price_cents": 44900,
+    "items_available": 4,
+    "category": 10,
+    "tags": [
+      10,
+      4
+    ]
+  }
+},
+{
+  "model": "catalog.product",
+  "pk": 18,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364221,
+    "name": "Oak Writing Desk",
+    "description": "Solid oak desk from sustainable forests, with a cable tray and one drawer.",
+    "price_cents": 32900,
+    "items_available": 6,
+    "category": 11,
+    "tags": [
+      8,
+      4
+    ]
+  }
+},
+{
+  "model": "catalog.product",
+  "pk": 19,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364271,
+    "name": "Ergo Office Chair",
+    "description": "Ergonomic office chair with adjustable lumbar support and breathable mesh.",
+    "price_cents": 21900,
+    "items_available": 9,
+    "category": 11,
+    "tags": [
+      9,
+      4
+    ]
+  }
+},
+{
+  "model": "catalog.product",
+  "pk": 20,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364221,
+    "name": "The Silent Orchard",
+    "description": "A family saga set across three generations on a remote apple farm.",
+    "price_cents": 1599,
+    "items_available": 35,
+    "category": 13,
+    "tags": [
+      9,
+      10
+    ]
+  }
+},
+{
+  "model": "catalog.product",
+  "pk": 21,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364221,
+    "name": "Starfall Chronicles",
+    "description": "Fast-paced science fiction adventure about a crew stranded at the edge of the galaxy.",
+    "price_cents": 999,
+    "items_available": 22,
+    "category": 13,
+    "tags": [
+      3,
+      12
+    ]
+  }
+},
+{
+  "model": "catalog.product",
+  "pk": 22,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364271,
+    "name": "Practical Django Queries",
+    "description": "A hands-on guide to the Django ORM: querysets, annotations, subqueries and performance.",
+    "price_cents": 3900,
+    "items_available": 14,
+    "category": 14,
+    "tags": [
+      9,
+      12
+    ]
+  }
+},
+{
+  "model": "catalog.product",
+  "pk": 23,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364221,
+    "name": "Mindful Cooking",
+    "description": "Seasonal vegetarian recipes with tips on reducing kitchen waste.",
+    "price_cents": 2400,
+    "items_available": 11,
+    "category": 14,
+    "tags": [
+      8,
+      10
+    ]
+  }
+},
+{
+  "model": "catalog.product",
+  "pk": 24,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364221,
+    "name": "Trail Running Backpack",
+    "description": "Lightweight 12-litre running backpack with a hydration sleeve and waterproof zips.",
+    "price_cents": 6900,
+    "items_available": 16,
+    "category": 15,
+    "tags": [
+      12,
+      5,
+      11
+    ]
+  }
+},
+{
+  "model": "catalog.product",
+  "pk": 25,
+  "fields": {
+    "created_at": 1795364221,
+    "updated_at": 1795364221,
+    "name": "Yoga Mat Pro",
+    "description": "Non-slip natural rubber yoga mat. Introductory price.",
+    "price_cents": 499,
+    "items_available": 45,
+    "category": 15,
+    "tags": [
+      3,
+      8
+    ]
+  }
+}
+]

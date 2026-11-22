@@ -1,0 +1,16 @@
+# Python / uv
+.venv/
+__pycache__/
+*.py[cod]
+
+# Local data and secrets
+db.sqlite3
+db.sqlite3-journal
+*.sqlite3
+.env
+staticfiles/
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store

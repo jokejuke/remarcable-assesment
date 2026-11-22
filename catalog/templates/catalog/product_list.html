@@ -1,0 +1,95 @@
+{% extends "catalog/base.html" %}
+{% load money %}
+
+{% block header_search %}
+  <div class="search">
+    <input type="search" name="q" form="filters" value="{{ request.GET.q|default:'' }}" placeholder="Search name or description…" aria-label="Search">
+    <button type="submit" form="filters">Search</button>
+  </div>
+{% endblock %}
+
+{% block body %}
+<div class="layout">
+  <aside>
+    <form id="filters" method="get" action="{% url 'catalog:product-list' %}">
+      {% if form.non_field_errors %}{{ form.non_field_errors }}{% endif %}
+
+      <fieldset>
+        <legend>Category</legend>
+        {{ form.category.errors }}
+        <div class="category-tree">{{ form.category }}</div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Price</legend>
+        {{ form.price_min.errors }}{{ form.price_max.errors }}
+        <label for="price_min">Min: <output id="price_min_label">{{ price_min|money }}</output></label>
+        <input type="range" id="price_min" name="price_min" min="{{ price_low }}" max="{{ price_high }}" step="100" value="{{ price_min }}">
+        <label for="price_max">Max: <output id="price_max_label">{{ price_max|money }}</output></label>
+        <input type="range" id="price_max" name="price_max" min="{{ price_low }}" max="{{ price_high }}" step="100" value="{{ price_max }}">
+        <div class="range-row"><span>{{ price_low|money }}</span><span>{{ price_high|money }}</span></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Tags</legend>
+        {{ form.tags.errors }}
+        {{ form.tags }}
+        <div class="match">
+          <label><input type="radio" name="match" value="all"{% if request.GET.match != "any" %} checked{% endif %}> Match all tags</label>
+          <label><input type="radio" name="match" value="any"{% if request.GET.match == "any" %} checked{% endif %}> Match any tag</label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Options</legend>
+        <label><input type="checkbox" name="include_out_of_stock" value="true"{% if form.cleaned_data.include_out_of_stock %} checked{% endif %}> Include out of stock</label>
+        {% if user.is_authenticated %}
+          <label><input type="checkbox" name="favorites" value="true"{% if form.cleaned_data.favorites %} checked{% endif %}> Only my favourites</label>
+        {% endif %}
+      </fieldset>
+
+      <button type="submit">Apply</button>
+      <a class="button secondary" href="{% url 'catalog:product-list' %}">Reset</a>
+    </form>
+  </aside>
+
+  <main>
+    {% include "catalog/_messages.html" %}
+    {% if form.errors %}
+      <p class="errorlist">Please fix the filter errors in the sidebar.</p>
+    {% else %}
+      <p class="muted">{{ paginator.count }} product{{ paginator.count|pluralize }} found.</p>
+    {% endif %}
+
+    <div class="grid">
+      {% for product in products %}
+        {% include "catalog/_product_card.html" %}
+      {% empty %}
+        <p>No products match these filters.</p>
+      {% endfor %}
+    </div>
+
+    {% if is_paginated %}
+      <nav class="pagination">
+        {% if page_obj.has_previous %}<a href="?{% if querystring %}{{ querystring }}&amp;{% endif %}page={{ page_obj.previous_page_number }}" rel="prev">← Previous</a>{% endif %}
+        <span>Page {{ page_obj.number }} of {{ paginator.num_pages }}</span>
+        {% if page_obj.has_next %}<a href="?{% if querystring %}{{ querystring }}&amp;{% endif %}page={{ page_obj.next_page_number }}" rel="next">Next →</a>{% endif %}
+      </nav>
+    {% endif %}
+  </main>
+</div>
+
+<script>
+  // Live dollar labels for the price sliders; filtering itself works without JS.
+  (function () {
+    const fmt = (cents) => "$" + (cents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const lo = document.getElementById("price_min"), hi = document.getElementById("price_max");
+    function sync(e) {
+      if (+lo.value > +hi.value) { if (e && e.target === lo) hi.value = lo.value; else lo.value = hi.value; }
+      document.getElementById("price_min_label").textContent = fmt(+lo.value);
+      document.getElementById("price_max_label").textContent = fmt(+hi.value);
+    }
+    lo.addEventListener("input", sync); hi.addEventListener("input", sync);
+  })();
+</script>
+{% endblock %}

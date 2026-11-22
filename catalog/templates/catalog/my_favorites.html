@@ -1,0 +1,17 @@
+{% extends "catalog/base.html" %}
+{% block title %}My favourites · Product Catalog{% endblock %}
+{% block body %}
+<div class="layout single">
+  <main>
+    <h1>My favourites</h1>
+    {% include "catalog/_messages.html" %}
+    <div class="grid">
+      {% for product in products %}
+        {% include "catalog/_product_card.html" %}
+      {% empty %}
+        <p>You have no favourites yet. Use the ♡ button on a product to add one.</p>
+      {% endfor %}
+    </div>
+  </main>
+</div>
+{% endblock %}

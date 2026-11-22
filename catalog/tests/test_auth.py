@@ -1,0 +1,91 @@
+"""Spec: api-auth (JWT and session authentication)."""
+
+from datetime import timedelta
+
+from rest_framework.test import APIClient, APITestCase
+from rest_framework_simplejwt.tokens import AccessToken
+
+from .factories import build_tree, product, user
+
+PASSWORD = "pass-for-tests-123"
+
+
+class JwtTests(APITestCase):
+    def setUp(self):
+        self.shopper = user("shopper", PASSWORD)
+
+    def obtain(self, password=PASSWORD):
+        return self.client.post("/api/auth/token/", {"username": "shopper", "password": password}, format="json")
+
+    def test_valid_login_returns_pair(self):
+        response = self.obtain()
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("access", response.data)
+        self.assertIn("refresh", response.data)
+
+    def test_wrong_password_401_no_tokens(self):
+        response = self.obtain("nope")
+        self.assertEqual(response.status_code, 401)
+        self.assertNotIn("access", response.data)
+
+    def test_bearer_token_authenticates(self):
+        access = self.obtain().data["access"]
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {access}")
+        self.assertEqual(self.client.get("/api/favorites/").status_code, 200)
+
+    def test_expired_token_401(self):
+        token = AccessToken.for_user(self.shopper)
+        token.set_exp(lifetime=-timedelta(seconds=1))
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+        self.assertEqual(self.client.get("/api/favorites/").status_code, 401)
+
+    def test_invalid_token_401(self):
+        self.client.credentials(HTTP_AUTHORIZATION="Bearer not-a-token")
+        self.assertEqual(self.client.get("/api/favorites/").status_code, 401)
+
+    def test_default_access_lifetime_is_15_minutes(self):
+        token = AccessToken(self.obtain().data["access"])
+        self.assertEqual(token["exp"] - token["iat"], 15 * 60)
+
+    def test_refresh_rotates_and_old_refresh_rejected(self):
+        refresh = self.obtain().data["refresh"]
+        first = self.client.post("/api/auth/token/refresh/", {"refresh": refresh}, format="json")
+        self.assertEqual(first.status_code, 200)
+        self.assertIn("access", first.data)
+        self.assertNotEqual(first.data["refresh"], refresh)
+        again = self.client.post("/api/auth/token/refresh/", {"refresh": refresh}, format="json")
+        self.assertEqual(again.status_code, 401)
+
+    def test_refresh_after_logout_rejected(self):
+        refresh = self.obtain().data["refresh"]
+        self.assertEqual(self.client.post("/api/auth/logout/", {"refresh": refresh}, format="json").status_code, 200)
+        response = self.client.post("/api/auth/token/refresh/", {"refresh": refresh}, format="json")
+        self.assertEqual(response.status_code, 401)
+
+    def test_anonymous_gets_401_with_bearer_challenge(self):
+        response = self.client.get("/api/orders/")
+        self.assertEqual(response.status_code, 401)
+        self.assertTrue(response["WWW-Authenticate"].startswith("Bearer"))
+
+
+class SessionApiTests(APITestCase):
+    def setUp(self):
+        self.shopper = user("shopper", PASSWORD)
+        self.p = product("Buds", build_tree()["headphones"])
+
+    def test_session_reads_orders(self):
+        self.client.login(username="shopper", password=PASSWORD)
+        self.assertEqual(self.client.get("/api/orders/").status_code, 200)
+
+    def test_session_post_without_csrf_is_403(self):
+        client = APIClient(enforce_csrf_checks=True)
+        client.login(username="shopper", password=PASSWORD)
+        response = client.post("/api/favorites/", {"product": self.p.pk}, format="json")
+        self.assertEqual(response.status_code, 403)
+        self.assertFalse(self.shopper.favorites.exists())
+
+    def test_bearer_post_needs_no_csrf(self):
+        # Token clients are not cookie-based, so CSRF does not apply to them.
+        client = APIClient(enforce_csrf_checks=True)
+        client.credentials(HTTP_AUTHORIZATION=f"Bearer {AccessToken.for_user(self.shopper)}")
+        self.assertEqual(client.post("/api/favorites/", {"product": self.p.pk}, format="json").status_code, 201)

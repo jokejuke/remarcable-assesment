@@ -1,0 +1,76 @@
+[
+  {
+    "model": "auth.user",
+    "pk": 1,
+    "fields": {
+      "username": "admin",
+      "password": "pbkdf2_sha256$1000000$vAZtUBShlUgMDqbwHkkb3i$Td4fRsnNNOP2yrqY/TZQDKYUrGabLk3DqUUTZa/TtOE=",
+      "email": "admin@example.com",
+      "first_name": "Demo",
+      "last_name": "Admin",
+      "is_superuser": true,
+      "is_staff": true,
+      "is_active": true,
+      "date_joined": "2026-11-22T00:00:00Z",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 2,
+    "fields": {
+      "username": "shopper",
+      "password": "pbkdf2_sha256$1000000$Vuf2AxxYcSJCXxkW31E76g$7ih72g2OENWNUREMLS+ozu9DocAb9aX80+FCE2yJTdY=",
+      "email": "shopper@example.com",
+      "first_name": "Demo",
+      "last_name": "Shopper",
+      "is_superuser": false,
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2026-11-22T00:00:00Z",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "catalog.favorite",
+    "pk": 1,
+    "fields": {
+      "user": 2,
+      "product": 1,
+      "created_at": 1795364230,
+      "updated_at": 1795364230
+    }
+  },
+  {
+    "model": "catalog.favorite",
+    "pk": 2,
+    "fields": {
+      "user": 2,
+      "product": 5,
+      "created_at": 1795364230,
+      "updated_at": 1795364230
+    }
+  },
+  {
+    "model": "catalog.favorite",
+    "pk": 3,
+    "fields": {
+      "user": 2,
+      "product": 4,
+      "created_at": 1795364230,
+      "updated_at": 1795364230
+    }
+  },
+  {
+    "model": "catalog.favorite",
+    "pk": 4,
+    "fields": {
+      "user": 2,
+      "product": 22,
+      "created_at": 1795364230,
+      "updated_at": 1795364230
+    }
+  }
+]
