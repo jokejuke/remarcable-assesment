@@ -1,0 +1,53 @@
+# Production stack: nginx (TLS) in front of gunicorn.
+#   docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --build
+# Expects certs/fullchain.pem and certs/privkey.pem (see README).
+services:
+  app:
+    build:
+      context: .
+      target: prod
+    restart: unless-stopped
+    environment:
+      DEBUG: "0"
+      # Compose also auto-loads the dev .env; this is only set in .env.prod.
+      DEPLOY_ENV: ${DEPLOY_ENV:?run with --env-file .env.prod (not the dev .env)}
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY must be set in .env.prod}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:?ALLOWED_HOSTS must be set in .env.prod}
+      CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS:-}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-}
+      TRUST_X_FORWARDED_PROTO: "1"
+    volumes:
+      - data:/data
+    healthcheck:
+      # Send the Host and forwarded-protocol headers the app requires.
+      test:
+        - CMD
+        - python
+        - -c
+        - |
+          import os, urllib.request
+          host = os.environ["ALLOWED_HOSTS"].split(",")[0].strip()
+          req = urllib.request.Request("http://127.0.0.1:8000/accounts/login/",
+              headers={"Host": host, "X-Forwarded-Proto": "https"})
+          urllib.request.urlopen(req, timeout=5)
+      interval: 15s
+      timeout: 8s
+      start_period: 20s
+      retries: 3
+
+  web:
+    build:
+      context: .
+      target: web
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./certs:/etc/nginx/certs:ro
+    depends_on:
+      app:
+        condition: service_healthy
+
+volumes:
+  data:

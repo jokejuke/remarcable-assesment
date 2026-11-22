@@ -225,6 +225,37 @@ curl -s -X POST http://127.0.0.1:8000/api/auth/logout/ \
 
 In **Swagger UI** (`/api/docs/`): run `POST /api/auth/token/` with "Try it out", copy the `access` value, click **Authorize**, paste it into `jwtAuth`, and the protected endpoints will work. If you're logged in to the site in the same browser, Swagger also works through the session.
 
+## Docker
+
+Local development does not use Docker: keep using `uv run --env-file .env ...` (see [Setup](#setup)).
+
+### Run the checks (CI)
+
+One command runs the tests, the migration check, the OpenAPI validation and the linter, and exits non-zero if any fails. It needs no `.env`:
+
+```bash
+docker build --target test -t catalog-test . && docker run --rm catalog-test
+```
+
+### Production stack
+
+nginx terminates TLS and serves `/static/`; gunicorn runs the app behind it (one worker, several threads: the category cache is per-process and SQLite has a single writer). SQLite lives on the `data` volume, and migrations run when the app container starts. Demo data is never loaded.
+
+```bash
+cp .env.prod.example .env.prod        # set SECRET_KEY, ALLOWED_HOSTS, CSRF_TRUSTED_ORIGINS
+mkdir certs                            # put fullchain.pem and privkey.pem here
+docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --build
+```
+
+Always pass `--env-file .env.prod`; the stack refuses to start from the development `.env`. For a trial run, a self-signed certificate works (browsers will warn, and HSTS is on for a year, so don't trial it on a real domain):
+
+```bash
+openssl req -x509 -newkey rsa:2048 -nodes -days 30 -subj "/CN=localhost" \
+  -addext "subjectAltName=DNS:localhost" -keyout certs/privkey.pem -out certs/fullchain.pem
+```
+
+Create the first admin with `docker compose --env-file .env.prod -f docker-compose.prod.yml exec app python manage.py createsuperuser`. `certs/` and `.env.prod` are git-ignored.
+
 ## Configuration
 
 All settings that vary between deployments come from environment variables. `.env.example` has safe development values; load them with `uv run --env-file .env ...`.
