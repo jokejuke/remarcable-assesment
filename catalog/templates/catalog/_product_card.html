@@ -1,5 +1,6 @@
 {% load money catalog_extras %}
 <article class="card" data-product-id="{{ product.pk }}">
+  {% include "catalog/_product_image.html" %}
   <h3>{{ product.name }}</h3>
   <div class="path">{{ product.category_id|category_path }}</div>
   {% if product.description %}<div class="desc">{{ product.description|truncatewords:24 }}</div>{% endif %}
@@ -11,17 +12,7 @@
     <div class="stock out">Out of stock</div>
   {% endif %}
   <div class="actions">
-    {% if user.is_authenticated %}
-      {% if product.is_favorite %}
-        <form method="post" action="{% url 'catalog:favorite-remove' product.pk %}">{% csrf_token %}<input type="hidden" name="next" value="{{ current_url }}"><button type="submit" class="fav on" title="Remove from favourites">♥ Favourite</button></form>
-      {% else %}
-        <form method="post" action="{% url 'catalog:favorite-add' product.pk %}">{% csrf_token %}<input type="hidden" name="next" value="{{ current_url }}"><button type="submit" class="fav" title="Add to favourites">♡ Favourite</button></form>
-      {% endif %}
-      {% if product.items_available > 0 %}
-        <form method="post" action="{% url 'catalog:buy' product.pk %}">{% csrf_token %}<input type="hidden" name="next" value="{{ current_url }}"><button type="submit" class="buy">Buy</button></form>
-      {% endif %}
-    {% else %}
-      <a href="{% url 'login' %}?next={{ current_url|urlencode }}">Log in</a> <span class="muted">to buy or save favourites</span>
-    {% endif %}
+    <a class="button secondary details" href="{% url 'catalog:product-detail' product.slug %}">Details</a>
+    {% include "catalog/_product_actions.html" %}
   </div>
 </article>

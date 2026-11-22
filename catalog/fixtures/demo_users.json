@@ -3,7 +3,7 @@
     "model": "auth.user",
     "pk": 1,
     "fields": {
-      "username": "admin",
+      "username": "admin@example.com",
       "password": "pbkdf2_sha256$1000000$vAZtUBShlUgMDqbwHkkb3i$Td4fRsnNNOP2yrqY/TZQDKYUrGabLk3DqUUTZa/TtOE=",
       "email": "admin@example.com",
       "first_name": "Demo",
@@ -20,11 +20,28 @@
     "model": "auth.user",
     "pk": 2,
     "fields": {
-      "username": "shopper",
+      "username": "shopper@example.com",
       "password": "pbkdf2_sha256$1000000$Vuf2AxxYcSJCXxkW31E76g$7ih72g2OENWNUREMLS+ozu9DocAb9aX80+FCE2yJTdY=",
       "email": "shopper@example.com",
       "first_name": "Demo",
       "last_name": "Shopper",
+      "is_superuser": false,
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2026-11-22T00:00:00Z",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 3,
+    "fields": {
+      "username": "shopper2@example.com",
+      "password": "pbkdf2_sha256$1000000$1e7fvm64yrHMJ7KfrPk5H9$2lSYT5Rvy5tVytoEP3qnECTbSpbBIyisIznN+F2FaGQ=",
+      "email": "shopper2@example.com",
+      "first_name": "Demo",
+      "last_name": "Shopper Two",
       "is_superuser": false,
       "is_staff": false,
       "is_active": true,

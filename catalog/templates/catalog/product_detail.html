@@ -1,0 +1,27 @@
+{% extends "catalog/base.html" %}
+{% load money catalog_extras %}
+{% block title %}{{ product.name }} · Product Catalog{% endblock %}
+{% block body %}
+<div class="layout single">
+  <main>
+    <p><a href="{% url 'catalog:product-list' %}">← All products</a></p>
+    {% include "catalog/_messages.html" %}
+    <article class="product-page" data-product-id="{{ product.pk }}">
+      {% include "catalog/_product_image.html" %}
+      <div class="product-info">
+        <h1>{{ product.name }}</h1>
+        <div class="path">{{ product.category_id|category_path }}</div>
+        {% if product.tags.all %}<div class="tags">{% for tag in product.tags.all %}<span>{{ tag.name }}</span>{% endfor %}</div>{% endif %}
+        <div class="price">{{ product.price_cents|money }}</div>
+        {% if product.items_available > 0 %}
+          <div class="stock">{{ product.items_available }} in stock</div>
+        {% else %}
+          <div class="stock out">Out of stock</div>
+        {% endif %}
+        <div class="actions">{% include "catalog/_product_actions.html" %}</div>
+        {% if product.description %}<p class="full-desc">{{ product.description|linebreaksbr }}</p>{% endif %}
+      </div>
+    </article>
+  </main>
+</div>
+{% endblock %}

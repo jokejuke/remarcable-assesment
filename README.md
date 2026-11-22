@@ -15,7 +15,8 @@ Beyond the brief it adds a nested category tree, stock and prices, favourites, o
 - [x] Category tree with configurable depth
 - [x] Products and tags managed in the admin
 - [x] Search and combinable filters
-- [x] Storefront page
+- [x] Storefront page, product pages and pictures
+- [x] Sign-up and login by email
 - [x] Demo data fixtures
 - [x] Favourites
 - [x] One-click checkout and order history
@@ -27,10 +28,10 @@ Beyond the brief it adds a nested category tree, stock and prices, favourites, o
 
 ### User workflow
 
-1. **An administrator manages the catalog** at `/admin/` (demo login `admin`): builds the category tree, creates tags, and adds products with a price, stock, a category and tags. Orders are visible there but read-only.
-2. **A shopper browses the storefront** at `/`. Anyone can search from the header and filter from the sidebar by category (including subcategories), tags (all or any), price range and stock, then press **Apply** (or **Reset**). Every filter lives in the URL, so results can be bookmarked and paginated.
-3. **The shopper logs in** (demo login `shopper`) and returns to the same page. Cards now show **♡ Favourite** and **Buy** buttons, and the sidebar gains **Only my favourites**.
-4. **Favourites** are toggled from any card and listed under **My favourites**, including products that are now out of stock.
+1. **An administrator manages the catalog** at `/admin/` (demo login `admin@example.com`): builds the category tree, creates tags, and adds products with a price, stock, a category and tags. Orders are visible there but read-only.
+2. **A shopper browses the storefront** at `/`. Anyone can search from the header and filter from the sidebar by category (including subcategories), tags (all or any), price range and stock, then press **Apply** (or **Reset**). Every filter lives in the URL, so results can be bookmarked and paginated. Each card shows the product's picture (or a placeholder), its price and stock, a **Details** link and, for products in stock, a **Buy** button. Visitors who are not logged in see these too.
+3. **Details** opens the product page at `/products/<slug>/` with the picture, the full description, the category path, tags, price and stock, plus **Buy** (when in stock) and, for logged-in users, **♡ Favourite**. Out-of-stock products have a page too, without Buy.
+4. **Visitors who click Buy** are sent to the login page and, after logging in or signing up, come back to the page they were on. Nothing is bought until they click Buy again. Anyone can **create an account** at `/accounts/signup/` (linked from the login page) with an email address and a password entered twice; the email becomes the username, and the new account is a regular shopper with no admin access. Logged-in users also get **♡ Favourite** on every card and **Only my favourites** in the sidebar. Favourites are toggled from any card or product page and listed under **My favourites**, including products that are now out of stock.
 5. **Buy** places a one-unit order straight away and shows a confirmation, or an "out of stock" message if someone bought the last unit first. Stock drops immediately.
 6. **My orders** lists past orders, newest first, with the prices that were paid.
 7. **API clients** use the same catalog through `/api/`: read the products with the storefront's filter parameters, get a JWT at `/api/auth/token/`, then manage favourites and place multi-item orders. Everything can be tried in Swagger UI at `/api/docs/` (see [API](#api)).
@@ -39,7 +40,7 @@ Beyond the brief it adds a nested category tree, stock and prices, favourites, o
 
 ```bash
 uv sync                                                          # install dependencies into .venv
-uv run --env-file .env python manage.py test                     # run the test suite (~200 tests)
+uv run --env-file .env python manage.py test                     # run the test suite (~270 tests)
 uv run --env-file .env python manage.py makemigrations --check   # confirm models and migrations agree
 uv run --env-file .env python manage.py spectacular --validate --fail-on-warn --file /dev/null   # check the OpenAPI schema
 ```
@@ -54,6 +55,7 @@ Code layout (`catalog/` is the only app):
 | `category_tree.py`, `signals.py` | The cached category tree and its invalidation |
 | `services.py` | `place_order()` and `OutOfStock` |
 | `views.py`, `urls.py`, `templates/` | The storefront |
+| `accounts.py` | Sign-up and the email login form |
 | `api/` | Serializers, viewsets and API routes |
 | `admin.py` | Admin configuration |
 | `fixtures/` | Demo data |
@@ -90,15 +92,25 @@ Open http://127.0.0.1:8000/ for the storefront and http://127.0.0.1:8000/admin/ 
 
 ### Demo data
 
-Two fixtures live in `catalog/fixtures/`. Load them **in this order**, because the users fixture refers to catalog products through the shopper's favourites:
+Two fixtures live in `catalog/fixtures/`. Load them **in this order**, because the users fixture refers to catalog products through the first shopper's favourites:
 
-1. `catalog.json`: 15 categories in a three-level tree, 12 tags and 25 products (2 of them out of stock). It was entered through the Django admin and exported with `dumpdata catalog.category catalog.tag catalog.product --indent 2`. It contains no user accounts.
-2. `demo_users.json`: two accounts and the shopper's favourites. Passwords are stored only as hashes.
+1. `catalog.json`: **7 categories** in a three-level tree (Books; Electronics > Audio > Headphones and Speakers; Electronics > Computers & Phones; Home & Outdoors), 12 tags and **25 products** (2 of them out of stock), spread over three storefront pages. 24 products have a picture; "Starfall Chronicles" has none, so it shows the placeholder. It was exported with `dumpdata catalog.category catalog.tag catalog.product --indent 2` and contains no user accounts.
+2. `demo_users.json`: three accounts and the first shopper's favourites. Passwords are stored only as hashes.
 
-| User | Password | Access |
+| User (email) | Password | Access |
 |---|---|---|
-| `admin` | `demo-admin-123` | Superuser: the admin at `/admin/` and the storefront |
-| `shopper` | `demo-shopper-123` | Storefront and API only (no admin), with 4 favourites |
+| `admin@example.com` | `demo-admin-123` | Superuser: the admin at `/admin/` and the storefront |
+| `shopper@example.com` | `demo-shopper-123` | Storefront and API only (no admin), with 4 favourites |
+| `shopper2@example.com` | `demo-shopper2-123` | Storefront and API only (no admin), with no favourites |
+
+**Pictures need internet access.** Each `image_url` points at a freely licensed photo on [Wikimedia Commons](https://commons.wikimedia.org/) (960px thumbnails on `upload.wikimedia.org`). Offline, or if a link breaks, cards and product pages show the placeholder. The photos are only illustrations: the products are fictional, and each file keeps its own Commons licence.
+
+To start again from clean demo data, for example after pulling a new version of the fixtures, reload everything (this deletes all data in the database, including orders and accounts you created):
+
+```bash
+uv run --env-file .env python manage.py flush --no-input
+uv run --env-file .env python manage.py loaddata catalog demo_users
+```
 
 > **Warning:** never load `demo_users` in production. Its passwords are public in this README.
 
@@ -114,6 +126,13 @@ Two fixtures live in `catalog/fixtures/`. Load them **in this order**, because t
 - Filtering by a category includes every category below it.
 - The tree is cached in memory for an hour and cleared as soon as a category change commits.
 - **Lowering `CATALOG_MAX_CATEGORY_DEPTH`** doesn't touch existing categories. Ones that are now too deep keep working but fail validation the next time they're saved in the admin.
+
+### Accounts
+
+- **Sign-up** (`/accounts/signup/`) takes an email address and a password twice. The password must pass Django's validators (at least 8 characters, not too common, not all digits, not too similar to the email). There is no email verification and no password reset.
+- **The email is the username**, stored in lower case. A second sign-up with the same address in any letter case is rejected.
+- **Login** (`/accounts/login/`) labels the first field "Email" and matches it ignoring letter case. The admin login and the API token endpoint (`/api/auth/token/`) still match the username exactly, so use the lower-case email there.
+- Both pages keep the `next` target, so a visitor who clicked Buy lands back on the same page. Only targets on this site are accepted.
 
 ### Search and filters
 
@@ -145,7 +164,9 @@ The storefront and the API share one filter definition (`catalog/filters.py`), s
 
 ### Products, prices and timestamps
 
-- Product and tag names are unique. A product has exactly one category (one that holds products) and any number of tags. Deleting a tag removes it from products; the products stay.
+- Product and tag names are unique. A product has exactly one category (one that holds products) and any number of tags.
+- **Slug:** every product has a unique URL slug (lower-case letters, digits and hyphens). It is generated from the name when the product is created (`aurora-anc-headphones`, with `-2`, `-3`… added on a clash) and **does not change when the product is renamed**. It can be edited in the admin, and the product page lives at `/products/<slug>/`. The old id-based product URLs never existed, so nothing redirects.
+- **Picture:** `image_url` is optional, holds one `http` or `https` address and is never downloaded or stored by the server. The browser loads it directly. Deleting a tag removes it from products; the products stay.
 - **Prices are integer cents** in a single currency (`price_cents = 4900` shows as `$49.00`), which avoids floating-point rounding. Price filters in the URL and the API are in cents too.
 - **Stock** (`items_available`) can never go below zero; the database enforces it with a check constraint.
 - **Timestamps** (`created_at`, `updated_at`) on every catalog table are **whole Unix seconds** (UTC), shown as readable dates in the admin. Not covered: the automatic product–tag link table and tables owned by Django or libraries (users, sessions, token blacklist), which have their own date fields.
@@ -156,7 +177,7 @@ The JSON API lives under `/api/`. Interactive docs (Swagger UI) are at **`/api/d
 
 | Endpoint | Methods | Auth | Notes |
 |---|---|---|---|
-| `/api/products/` | GET | none | Paginated (20 per page). Takes every storefront filter parameter (see [Search and filters](#search-and-filters)). `favorites=true` requires auth (401 otherwise). |
+| `/api/products/` | GET | none | Paginated (20 per page). Each product includes `slug` and `image_url` (`""` when it has no picture). Takes every storefront filter parameter (see [Search and filters](#search-and-filters)). `favorites=true` requires auth (401 otherwise). |
 | `/api/products/{id}/` | GET | none | Includes `is_favorite` when authenticated. |
 | `/api/categories/`, `/api/categories/{id}/` | GET | none | Parent id, full `path`, `has_products` / `has_subcategories`. |
 | `/api/tags/`, `/api/tags/{id}/` | GET | none | |
@@ -181,7 +202,7 @@ With curl (the demo shopper, server on port 8000):
 # 1. Get a token pair
 curl -s -X POST http://127.0.0.1:8000/api/auth/token/ \
   -H "Content-Type: application/json" \
-  -d '{"username": "shopper", "password": "demo-shopper-123"}'
+  -d '{"username": "shopper@example.com", "password": "demo-shopper-123"}'
 
 # 2. Call the API with the access token
 ACCESS=<access token from step 1>
@@ -248,6 +269,8 @@ All settings that vary between deployments come from environment variables. `.en
 - **Swagger UI loads its JavaScript and CSS from a CDN.**
 - **Lowering `CATALOG_MAX_CATEGORY_DEPTH`** leaves existing deeper categories in place without a warning; they fail validation on their next save.
 - Timestamps don't cover the automatic product–tag table or tables owned by Django and libraries.
+- **Pictures are hotlinked.** The demo pictures load from Wikimedia Commons, so they need internet access and can disappear; the placeholder takes over.
+- **No email verification or password reset.** Sign-up accepts any well-formed email address, and there is no rate limiting on sign-up or login.
 - There's no cart, payment, order status, stock reservation, i18n or multi-currency support.
 
 ## Future work

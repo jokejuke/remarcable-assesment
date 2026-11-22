@@ -89,3 +89,21 @@ class SessionApiTests(APITestCase):
         client = APIClient(enforce_csrf_checks=True)
         client.credentials(HTTP_AUTHORIZATION=f"Bearer {AccessToken.for_user(self.shopper)}")
         self.assertEqual(client.post("/api/favorites/", {"product": self.p.pk}, format="json").status_code, 201)
+
+
+class SessionLoginFormTests(APITestCase):
+    """The storefront login form takes an email in any letter case (spec: accounts)."""
+
+    def setUp(self):
+        user("shopper@example.com", PASSWORD, email="shopper@example.com")
+
+    def test_mixed_case_email_logs_in(self):
+        response = self.client.post("/accounts/login/", {"username": "Shopper@Example.COM", "password": PASSWORD})
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(self.client.get("/api/favorites/").status_code, 200)  # the session works
+
+    def test_wrong_password_shows_the_generic_error(self):
+        response = self.client.post("/accounts/login/", {"username": "shopper@example.com", "password": "nope-nope-1"})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Your email and password didn")
+        self.assertEqual(self.client.get("/api/favorites/").status_code, 401)

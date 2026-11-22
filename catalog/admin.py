@@ -106,7 +106,11 @@ class ProductAdmin(TimestampsMixin, admin.ModelAdmin):
     list_select_related = ["category"]
     filter_horizontal = ["tags"]
     readonly_fields = ["created", "updated"]
-    fields = ["name", "description", "price_cents", "items_available", "category", "tags", "created", "updated"]
+    fields = [
+        "name", "slug", "image_url", "description", "price_cents", "items_available", "category", "tags",
+        "created", "updated",
+    ]
+    prepopulated_fields = {"slug": ["name"]}  # only while adding, so a rename never rewrites the slug
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         field = super().formfield_for_foreignkey(db_field, request, **kwargs)

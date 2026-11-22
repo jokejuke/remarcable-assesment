@@ -31,6 +31,53 @@ class CatalogFixtureOnlyTests(TestCase):
         response = self.client.get(reverse("catalog:product-list"))
         self.assertLess(response.context["paginator"].count, Product.objects.count())
 
+    def test_exact_category_paths(self):
+        cache.clear()
+        tree = get_category_tree()
+        self.assertEqual(
+            sorted(tree.path(n.id) for n in tree.nodes),
+            sorted([
+                "Books",
+                "Electronics",
+                "Electronics > Audio",
+                "Electronics > Audio > Headphones",
+                "Electronics > Audio > Speakers",
+                "Electronics > Computers & Phones",
+                "Home & Outdoors",
+            ]),
+        )
+        self.assertEqual(Category.objects.count(), 7)
+
+    def test_25_products_each_in_a_category_that_holds_products(self):
+        self.assertEqual(Product.objects.count(), 25)
+        self.assertFalse(Product.objects.filter(category__has_products=False).exists())
+        self.assertEqual(Category.objects.filter(products__isnull=False).distinct().count(), 5)
+
+    def test_most_products_have_a_picture_and_at_least_one_does_not(self):
+        without = Product.objects.filter(image_url="")
+        self.assertGreaterEqual(without.count(), 1)
+        self.assertGreater(Product.objects.exclude(image_url="").count(), Product.objects.count() // 2)
+        self.assertTrue(all(p.image_url.startswith("https://") for p in Product.objects.exclude(image_url="")))
+
+    def test_every_product_has_a_unique_slug(self):
+        slugs = list(Product.objects.values_list("slug", flat=True))
+        self.assertTrue(all(slugs))
+        self.assertEqual(len(slugs), len(set(slugs)))
+
+    def test_slugs_open_the_product_pages(self):
+        for product in Product.objects.all()[:5]:
+            self.assertEqual(self.client.get(reverse("catalog:product-detail", args=[product.slug])).status_code, 200)
+
+    def test_more_products_than_fit_on_one_storefront_page(self):
+        response = self.client.get(reverse("catalog:product-list"), {"include_out_of_stock": "true"})
+        self.assertGreater(response.context["paginator"].num_pages, 1)
+        self.assertEqual(response.context["paginator"].count, 25)
+
+    def test_cards_show_pictures_and_the_placeholder(self):
+        html = self.client.get(reverse("catalog:product-list"), {"include_out_of_stock": "true", "page": 3}).content.decode()
+        html += self.client.get(reverse("catalog:product-list"), {"include_out_of_stock": "true", "page": 1}).content.decode()
+        self.assertIn('<img src="https://upload.wikimedia.org/', html)
+
     def test_products_have_several_tags_and_a_price_range(self):
         self.assertTrue(all(len(p.tags.all()) >= 2 for p in Product.objects.prefetch_related("tags")))
         prices = Product.objects.values_list("price_cents", flat=True)
@@ -55,17 +102,40 @@ class FixtureValidationTests(TestCase):
             self.assertTrue(user.password.startswith("pbkdf2_sha256$"))
 
     def test_admin_can_manage_catalog(self):
-        self.assertTrue(self.client.login(username="admin", password="demo-admin-123"))
+        self.assertTrue(self.client.login(username="admin@example.com", password="demo-admin-123"))
         for url in ("admin:index", "admin:catalog_category_changelist", "admin:catalog_tag_changelist",
                     "admin:catalog_product_changelist", "admin:catalog_product_add"):
             self.assertEqual(self.client.get(reverse(url)).status_code, 200, url)
 
-    def test_shopper_has_no_admin_access(self):
-        self.assertTrue(self.client.login(username="shopper", password="demo-shopper-123"))
-        response = self.client.get(reverse("admin:index"))
-        self.assertRedirects(response, f"{reverse('admin:login')}?next={reverse('admin:index')}")
+    def test_all_demo_accounts_use_their_email_as_username(self):
+        users = {u.username: u for u in get_user_model().objects.all()}
+        self.assertEqual(set(users), {"admin@example.com", "shopper@example.com", "shopper2@example.com"})
+        for username, user in users.items():
+            self.assertEqual(user.email, username)
+
+    def test_both_shoppers_have_no_admin_access(self):
+        for username, password in (("shopper@example.com", "demo-shopper-123"), ("shopper2@example.com", "demo-shopper2-123")):
+            with self.subTest(username=username):
+                self.assertTrue(self.client.login(username=username, password=password))
+                response = self.client.get(reverse("admin:index"))
+                self.assertRedirects(response, f"{reverse('admin:login')}?next={reverse('admin:index')}")
+                self.client.logout()
+
+    def test_the_old_usernames_are_gone(self):
+        self.assertFalse(self.client.login(username="admin", password="demo-admin-123"))
+        self.assertFalse(self.client.login(username="shopper", password="demo-shopper-123"))
+
+    def test_email_logins_work_in_any_letter_case_through_the_login_form(self):
+        response = self.client.post(reverse("login"), {"username": "Shopper2@Example.com", "password": "demo-shopper2-123"})
+        self.assertEqual(response.status_code, 302)
 
     def test_shopper_has_favourites(self):
-        self.assertTrue(self.client.login(username="shopper", password="demo-shopper-123"))
+        self.assertTrue(self.client.login(username="shopper@example.com", password="demo-shopper-123"))
         response = self.client.get(reverse("catalog:my-favorites"))
         self.assertGreaterEqual(len(response.context["products"]), 2)
+
+    def test_second_shopper_starts_with_no_favourites(self):
+        self.assertTrue(self.client.login(username="shopper2@example.com", password="demo-shopper2-123"))
+        response = self.client.get(reverse("catalog:my-favorites"))
+        self.assertEqual(len(response.context["products"]), 0)
+        self.assertFalse(Favorite.objects.filter(user__username="shopper2@example.com").exists())

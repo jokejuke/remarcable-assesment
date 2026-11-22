@@ -52,44 +52,8 @@
   "pk": 5,
   "fields": {
     "created_at": 1795364221,
-    "updated_at": 1795364221,
-    "name": "Computers",
-    "parent": 1,
-    "has_products": false,
-    "has_subcategories": true
-  }
-},
-{
-  "model": "catalog.category",
-  "pk": 6,
-  "fields": {
-    "created_at": 1795364221,
-    "updated_at": 1795364221,
-    "name": "Laptops",
-    "parent": 5,
-    "has_products": true,
-    "has_subcategories": false
-  }
-},
-{
-  "model": "catalog.category",
-  "pk": 7,
-  "fields": {
-    "created_at": 1795364221,
-    "updated_at": 1795364221,
-    "name": "Accessories",
-    "parent": 5,
-    "has_products": true,
-    "has_subcategories": false
-  }
-},
-{
-  "model": "catalog.category",
-  "pk": 8,
-  "fields": {
-    "created_at": 1795364221,
-    "updated_at": 1795364221,
-    "name": "Phones",
+    "updated_at": 1795373136,
+    "name": "Computers & Phones",
     "parent": 1,
     "has_products": true,
     "has_subcategories": false
@@ -100,33 +64,9 @@
   "pk": 9,
   "fields": {
     "created_at": 1795364221,
-    "updated_at": 1795364221,
-    "name": "Home & Kitchen",
+    "updated_at": 1795373136,
+    "name": "Home & Outdoors",
     "parent": null,
-    "has_products": false,
-    "has_subcategories": true
-  }
-},
-{
-  "model": "catalog.category",
-  "pk": 10,
-  "fields": {
-    "created_at": 1795364221,
-    "updated_at": 1795364221,
-    "name": "Kitchen Appliances",
-    "parent": 9,
-    "has_products": true,
-    "has_subcategories": false
-  }
-},
-{
-  "model": "catalog.category",
-  "pk": 11,
-  "fields": {
-    "created_at": 1795364221,
-    "updated_at": 1795364221,
-    "name": "Furniture",
-    "parent": 9,
     "has_products": true,
     "has_subcategories": false
   }
@@ -136,44 +76,8 @@
   "pk": 12,
   "fields": {
     "created_at": 1795364221,
-    "updated_at": 1795364221,
+    "updated_at": 1795373136,
     "name": "Books",
-    "parent": null,
-    "has_products": false,
-    "has_subcategories": true
-  }
-},
-{
-  "model": "catalog.category",
-  "pk": 13,
-  "fields": {
-    "created_at": 1795364221,
-    "updated_at": 1795364221,
-    "name": "Fiction",
-    "parent": 12,
-    "has_products": true,
-    "has_subcategories": false
-  }
-},
-{
-  "model": "catalog.category",
-  "pk": 14,
-  "fields": {
-    "created_at": 1795364221,
-    "updated_at": 1795364221,
-    "name": "Non-fiction",
-    "parent": 12,
-    "has_products": true,
-    "has_subcategories": false
-  }
-},
-{
-  "model": "catalog.category",
-  "pk": 15,
-  "fields": {
-    "created_at": 1795364221,
-    "updated_at": 1795364221,
-    "name": "Sports & Outdoors",
     "parent": null,
     "has_products": true,
     "has_subcategories": false
@@ -292,12 +196,14 @@
   "pk": 1,
   "fields": {
     "created_at": 1795364221,
-    "updated_at": 1795364221,
+    "updated_at": 1795373136,
     "name": "Aurora ANC Headphones",
     "description": "Over-ear wireless headphones with adaptive noise cancelling and 30-hour battery life.",
     "price_cents": 24900,
     "items_available": 12,
     "category": 3,
+    "slug": "aurora-anc-headphones",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Bose_QuietComfort_25_Acoustic_Noise_Cancelling_Headphones_with_Carry_Case.jpg/960px-Bose_QuietComfort_25_Acoustic_Noise_Cancelling_Headphones_with_Carry_Case.jpg",
     "tags": [
       2,
       6,
@@ -311,12 +217,14 @@
   "pk": 2,
   "fields": {
     "created_at": 1795364221,
-    "updated_at": 1795364221,
+    "updated_at": 1795373136,
     "name": "Pebble Wireless Earbuds",
     "description": "Compact true-wireless earbuds with a pocket charging case. Great value for everyday listening.",
     "price_cents": 3900,
     "items_available": 40,
     "category": 3,
+    "slug": "pebble-wireless-earbuds",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/ActiveSound_wireless_earbuds_by_Hykker_%28POJM200483%29.jpg/960px-ActiveSound_wireless_earbuds_by_Hykker_%28POJM200483%29.jpg",
     "tags": [
       2,
       3,
@@ -330,12 +238,14 @@
   "pk": 3,
   "fields": {
     "created_at": 1795364221,
-    "updated_at": 1795364221,
+    "updated_at": 1795373136,
     "name": "Studio Monitor Headphones",
     "description": "Closed-back wired headphones with a flat, accurate sound for mixing and recording.",
     "price_cents": 12900,
     "items_available": 7,
     "category": 3,
+    "slug": "studio-monitor-headphones",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/SONY_MDR-CD900ST.jpg/960px-SONY_MDR-CD900ST.jpg",
     "tags": [
       9,
       4
@@ -347,12 +257,14 @@
   "pk": 4,
   "fields": {
     "created_at": 1795364221,
-    "updated_at": 1795364221,
+    "updated_at": 1795373136,
     "name": "Kids Safe Headphones",
     "description": "Volume-limited wired headphones for children, in bright colours.",
     "price_cents": 1900,
     "items_available": 0,
     "category": 3,
+    "slug": "kids-safe-headphones",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/Headphones_1.jpg/960px-Headphones_1.jpg",
     "tags": [
       3,
       10
@@ -364,12 +276,14 @@
   "pk": 5,
   "fields": {
     "created_at": 1795364221,
-    "updated_at": 1795364221,
+    "updated_at": 1795373136,
     "name": "Boom Go Speaker",
     "description": "Rugged portable bluetooth speaker, waterproof and dustproof, with 12 hours of playback.",
     "price_cents": 7900,
     "items_available": 25,
     "category": 4,
+    "slug": "boom-go-speaker",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/UE_Boom_2.jpg/960px-UE_Boom_2.jpg",
     "tags": [
       2,
       5,
@@ -383,12 +297,14 @@
   "pk": 6,
   "fields": {
     "created_at": 1795364221,
-    "updated_at": 1795364221,
+    "updated_at": 1795373136,
     "name": "Living Room Soundbar",
     "description": "Slim soundbar with wireless subwoofer and dialogue enhancement for TV and films.",
     "price_cents": 29900,
     "items_available": 5,
     "category": 4,
+    "slug": "living-room-soundbar",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/LG_IPS_LCD_4K_TV_%26_SAMSUNG_SOUNDBAR_HW-J250.jpg/960px-LG_IPS_LCD_4K_TV_%26_SAMSUNG_SOUNDBAR_HW-J250.jpg",
     "tags": [
       12,
       4,
@@ -401,12 +317,14 @@
   "pk": 7,
   "fields": {
     "created_at": 1795364221,
-    "updated_at": 1795364221,
+    "updated_at": 1795373136,
     "name": "Featherlight 13 Laptop",
     "description": "13-inch ultralight laptop with all-day battery, 16 GB memory and a 512 GB SSD.",
     "price_cents": 99900,
     "items_available": 8,
-    "category": 6,
+    "category": 5,
+    "slug": "featherlight-13-laptop",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Asus_x21_ultrabook.jpg/960px-Asus_x21_ultrabook.jpg",
     "tags": [
       9,
       5,
@@ -419,12 +337,14 @@
   "pk": 8,
   "fields": {
     "created_at": 1795364221,
-    "updated_at": 1795364221,
+    "updated_at": 1795373136,
     "name": "Raptor 16 Gaming Laptop",
     "description": "16-inch gaming laptop with a high refresh rate display and a dedicated graphics card.",
     "price_cents": 189900,
     "items_available": 3,
-    "category": 6,
+    "category": 5,
+    "slug": "raptor-16-gaming-laptop",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/MSI_Gaming_Laptop_on_wood_floor.jpg/960px-MSI_Gaming_Laptop_on_wood_floor.jpg",
     "tags": [
       7,
       12,
@@ -437,12 +357,14 @@
   "pk": 9,
   "fields": {
     "created_at": 1795364221,
-    "updated_at": 1795364221,
+    "updated_at": 1795373136,
     "name": "Everyday 15 Laptop",
     "description": "Reliable 15-inch laptop for study and office work, with a full-size keyboard.",
     "price_cents": 54900,
     "items_available": 15,
-    "category": 6,
+    "category": 5,
+    "slug": "everyday-15-laptop",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Laptop_computer.jpeg/960px-Laptop_computer.jpeg",
     "tags": [
       9,
       3
@@ -454,12 +376,14 @@
   "pk": 10,
   "fields": {
     "created_at": 1795364221,
-    "updated_at": 1795364221,
+    "updated_at": 1795373136,
     "name": "Silent Wireless Mouse",
     "description": "Quiet-click wireless mouse with a USB receiver and 18-month battery life.",
     "price_cents": 2500,
     "items_available": 60,
-    "category": 7,
+    "category": 5,
+    "slug": "silent-wireless-mouse",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/A_black_wireless_computer_mouse.jpg/960px-A_black_wireless_computer_mouse.jpg",
     "tags": [
       9,
       3,
@@ -472,12 +396,14 @@
   "pk": 11,
   "fields": {
     "created_at": 1795364221,
-    "updated_at": 1795364221,
+    "updated_at": 1795373136,
     "name": "Mechanical Gaming Keyboard",
     "description": "RGB mechanical keyboard with hot-swappable switches and a detachable cable.",
     "price_cents": 8900,
     "items_available": 20,
-    "category": 7,
+    "category": 5,
+    "slug": "mechanical-gaming-keyboard",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Mechanical_Keyboard.jpg/960px-Mechanical_Keyboard.jpg",
     "tags": [
       7,
       12
@@ -489,12 +415,14 @@
   "pk": 12,
   "fields": {
     "created_at": 1795364221,
-    "updated_at": 1795364271,
+    "updated_at": 1795373136,
     "name": "USB-C Travel Hub",
     "description": "7-in-1 USB-C hub with HDMI, card reader and pass-through charging.",
     "price_cents": 4500,
     "items_available": 0,
-    "category": 7,
+    "category": 5,
+    "slug": "usb-c-travel-hub",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/USB-C_Digital_AV_Multiport_Adapter.jpeg/960px-USB-C_Digital_AV_Multiport_Adapter.jpeg",
     "tags": [
       3,
       5
@@ -506,12 +434,14 @@
   "pk": 13,
   "fields": {
     "created_at": 1795364221,
-    "updated_at": 1795364221,
+    "updated_at": 1795373136,
     "name": "Nova 5G Phone",
     "description": "Flagship 5G smartphone with a triple camera, water resistance and wireless charging.",
     "price_cents": 79900,
     "items_available": 10,
-    "category": 8,
+    "category": 5,
+    "slug": "nova-5g-phone",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c6/5_different_Smartphones.jpg/960px-5_different_Smartphones.jpg",
     "tags": [
       12,
       4,
@@ -524,12 +454,14 @@
   "pk": 14,
   "fields": {
     "created_at": 1795364221,
-    "updated_at": 1795364221,
+    "updated_at": 1795373136,
     "name": "Basic Smartphone",
     "description": "Affordable smartphone with a big battery, dual SIM and bluetooth 5.",
     "price_cents": 14900,
     "items_available": 30,
-    "category": 8,
+    "category": 5,
+    "slug": "basic-smartphone",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/be/Blackview_A60_Smartphone_Android_mobile_phone_and_folio_case.jpg/960px-Blackview_A60_Smartphone_Android_mobile_phone_and_folio_case.jpg",
     "tags": [
       2,
       3
@@ -541,12 +473,14 @@
   "pk": 15,
   "fields": {
     "created_at": 1795364221,
-    "updated_at": 1795364221,
+    "updated_at": 1795373136,
     "name": "Precision Air Fryer",
     "description": "5-litre air fryer with digital presets for crispy results with little oil.",
     "price_cents": 11900,
     "items_available": 18,
-    "category": 10,
+    "category": 9,
+    "slug": "precision-air-fryer",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Air_Fryer_2020.jpg/960px-Air_Fryer_2020.jpg",
     "tags": [
       9,
       10
@@ -558,12 +492,14 @@
   "pk": 16,
   "fields": {
     "created_at": 1795364221,
-    "updated_at": 1795364221,
+    "updated_at": 1795373136,
     "name": "Bamboo Cutting Board Set",
     "description": "Set of three bamboo cutting boards in different sizes, with juice grooves.",
     "price_cents": 2900,
     "items_available": 50,
-    "category": 10,
+    "category": 9,
+    "slug": "bamboo-cutting-board-set",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Bamboo_cutting_board_surface_texture_2014_01.jpg/960px-Bamboo_cutting_board_surface_texture_2014_01.jpg",
     "tags": [
       3,
       8,
@@ -576,12 +512,14 @@
   "pk": 17,
   "fields": {
     "created_at": 1795364221,
-    "updated_at": 1795364271,
+    "updated_at": 1795373136,
     "name": "Barista Espresso Machine",
     "description": "Semi-automatic espresso machine with a steam wand and built-in grinder.",
     "price_cents": 44900,
     "items_available": 4,
-    "category": 10,
+    "category": 9,
+    "slug": "barista-espresso-machine",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Espresso_machine_1.jpg/960px-Espresso_machine_1.jpg",
     "tags": [
       10,
       4
@@ -593,12 +531,14 @@
   "pk": 18,
   "fields": {
     "created_at": 1795364221,
-    "updated_at": 1795364221,
+    "updated_at": 1795373136,
     "name": "Oak Writing Desk",
     "description": "Solid oak desk from sustainable forests, with a cable tray and one drawer.",
     "price_cents": 32900,
     "items_available": 6,
-    "category": 11,
+    "category": 9,
+    "slug": "oak-writing-desk",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Brede-LilleBrede-writing-desk-detail.JPG/960px-Brede-LilleBrede-writing-desk-detail.JPG",
     "tags": [
       8,
       4
@@ -610,12 +550,14 @@
   "pk": 19,
   "fields": {
     "created_at": 1795364221,
-    "updated_at": 1795364271,
+    "updated_at": 1795373136,
     "name": "Ergo Office Chair",
     "description": "Ergonomic office chair with adjustable lumbar support and breathable mesh.",
     "price_cents": 21900,
     "items_available": 9,
-    "category": 11,
+    "category": 9,
+    "slug": "ergo-office-chair",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Office_chair_%284444288246%29.jpg/960px-Office_chair_%284444288246%29.jpg",
     "tags": [
       9,
       4
@@ -627,12 +569,14 @@
   "pk": 20,
   "fields": {
     "created_at": 1795364221,
-    "updated_at": 1795364221,
+    "updated_at": 1795373136,
     "name": "The Silent Orchard",
     "description": "A family saga set across three generations on a remote apple farm.",
     "price_cents": 1599,
     "items_available": 35,
-    "category": 13,
+    "category": 12,
+    "slug": "the-silent-orchard",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/Stack_of_multicolored_books_on_a_table.jpg/960px-Stack_of_multicolored_books_on_a_table.jpg",
     "tags": [
       9,
       10
@@ -644,12 +588,14 @@
   "pk": 21,
   "fields": {
     "created_at": 1795364221,
-    "updated_at": 1795364221,
+    "updated_at": 1795373136,
     "name": "Starfall Chronicles",
     "description": "Fast-paced science fiction adventure about a crew stranded at the edge of the galaxy.",
     "price_cents": 999,
     "items_available": 22,
-    "category": 13,
+    "category": 12,
+    "slug": "starfall-chronicles",
+    "image_url": "",
     "tags": [
       3,
       12
@@ -661,12 +607,14 @@
   "pk": 22,
   "fields": {
     "created_at": 1795364221,
-    "updated_at": 1795364271,
+    "updated_at": 1795373136,
     "name": "Practical Django Queries",
     "description": "A hands-on guide to the Django ORM: querysets, annotations, subqueries and performance.",
     "price_cents": 3900,
     "items_available": 14,
-    "category": 14,
+    "category": 12,
+    "slug": "practical-django-queries",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Programming_language_textbooks.jpg/960px-Programming_language_textbooks.jpg",
     "tags": [
       9,
       12
@@ -678,12 +626,14 @@
   "pk": 23,
   "fields": {
     "created_at": 1795364221,
-    "updated_at": 1795364221,
+    "updated_at": 1795373136,
     "name": "Mindful Cooking",
     "description": "Seasonal vegetarian recipes with tips on reducing kitchen waste.",
     "price_cents": 2400,
     "items_available": 11,
-    "category": 14,
+    "category": 12,
+    "slug": "mindful-cooking",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/Handwritten_cookbook_by_Dorothea_Grimm.jpg/960px-Handwritten_cookbook_by_Dorothea_Grimm.jpg",
     "tags": [
       8,
       10
@@ -695,12 +645,14 @@
   "pk": 24,
   "fields": {
     "created_at": 1795364221,
-    "updated_at": 1795364221,
+    "updated_at": 1795373136,
     "name": "Trail Running Backpack",
     "description": "Lightweight 12-litre running backpack with a hydration sleeve and waterproof zips.",
     "price_cents": 6900,
     "items_available": 16,
-    "category": 15,
+    "category": 9,
+    "slug": "trail-running-backpack",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Plecak_Hiker_50_L_HiMountain.jpg/960px-Plecak_Hiker_50_L_HiMountain.jpg",
     "tags": [
       12,
       5,
@@ -713,12 +665,14 @@
   "pk": 25,
   "fields": {
     "created_at": 1795364221,
-    "updated_at": 1795364221,
+    "updated_at": 1795373136,
     "name": "Yoga Mat Pro",
     "description": "Non-slip natural rubber yoga mat. Introductory price.",
     "price_cents": 499,
     "items_available": 45,
-    "category": 15,
+    "category": 9,
+    "slug": "yoga-mat-pro",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Yoga_mat.jpg/960px-Yoga_mat.jpg",
     "tags": [
       3,
       8

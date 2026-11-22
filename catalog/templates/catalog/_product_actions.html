@@ -1,0 +1,13 @@
+{# Buy (everyone, when in stock) and the favourite control (logged-in users). Needs `product` and `current_url`. #}
+{% if user.is_authenticated %}
+  {% if product.is_favorite %}
+    <form method="post" action="{% url 'catalog:favorite-remove' product.pk %}">{% csrf_token %}<input type="hidden" name="next" value="{{ current_url }}"><button type="submit" class="fav on" title="Remove from favourites">♥ Favourite</button></form>
+  {% else %}
+    <form method="post" action="{% url 'catalog:favorite-add' product.pk %}">{% csrf_token %}<input type="hidden" name="next" value="{{ current_url }}"><button type="submit" class="fav" title="Add to favourites">♡ Favourite</button></form>
+  {% endif %}
+  {% if product.items_available > 0 %}
+    <form method="post" action="{% url 'catalog:buy' product.pk %}">{% csrf_token %}<input type="hidden" name="next" value="{{ current_url }}"><button type="submit" class="buy">Buy</button></form>
+  {% endif %}
+{% elif product.items_available > 0 %}
+  <a class="button buy" href="{% url 'login' %}?next={{ current_url|urlencode }}">Buy</a>
+{% endif %}

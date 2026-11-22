@@ -4,7 +4,9 @@ import time
 
 from django.conf import settings
 from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
+from django.core.validators import URLValidator
 from django.db import models
+from django.utils.text import slugify
 
 from .querysets import ProductQuerySet
 
@@ -12,6 +14,17 @@ from .querysets import ProductQuerySet
 def unix_now():
     """Current time as whole Unix seconds."""
     return int(time.time())
+
+
+def unique_slug(name, taken):
+    """`slugify(name)` (or "product"), with -2, -3, ... appended until it is not in `taken`."""
+    taken = set(taken)
+    base = slugify(name)[:200] or "product"
+    slug, n = base, 1
+    while slug in taken:
+        n += 1
+        slug = f"{base}-{n}"
+    return slug
 
 
 class TimestampedModel(models.Model):
@@ -176,6 +189,18 @@ class Product(TimestampedModel):
         limit_choices_to={"has_products": True},
     )
     tags = models.ManyToManyField(Tag, blank=True, related_name="products")
+    slug = models.SlugField(
+        max_length=220,
+        unique=True,
+        blank=True,
+        help_text="Public URL part. Generated from the name when left empty; it does not change on rename.",
+    )
+    image_url = models.URLField(
+        max_length=500,
+        blank=True,
+        validators=[URLValidator(schemes=["http", "https"])],
+        help_text="Address of one picture (http or https). Leave empty to show a placeholder.",
+    )
 
     objects = ProductQuerySet.as_manager()
 
@@ -188,6 +213,14 @@ class Product(TimestampedModel):
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = unique_slug(self.name, Product.objects.exclude(pk=self.pk).values_list("slug", flat=True))
+            update_fields = kwargs.get("update_fields")
+            if update_fields is not None:
+                kwargs["update_fields"] = {*update_fields, "slug"}
+        super().save(*args, **kwargs)
 
     def clean(self):
         super().clean()

@@ -12,6 +12,7 @@
 <div class="layout">
   <aside>
     <form id="filters" method="get" action="{% url 'catalog:product-list' %}">
+      <div class="filters-body">
       {% if form.non_field_errors %}{{ form.non_field_errors }}{% endif %}
 
       <fieldset>
@@ -20,13 +21,17 @@
         <div class="category-tree">{{ form.category }}</div>
       </fieldset>
 
-      <fieldset>
+      <fieldset class="price-filter">
         <legend>Price</legend>
         {{ form.price_min.errors }}{{ form.price_max.errors }}
-        <label for="price_min">Min: <output id="price_min_label">{{ price_min|money }}</output></label>
-        <input type="range" id="price_min" name="price_min" min="{{ price_low }}" max="{{ price_high }}" step="100" value="{{ price_min }}">
-        <label for="price_max">Max: <output id="price_max_label">{{ price_max|money }}</output></label>
-        <input type="range" id="price_max" name="price_max" min="{{ price_low }}" max="{{ price_high }}" step="100" value="{{ price_max }}">
+        <div class="price-labels">
+          <label for="price_min">Min: <output id="price_min_label">{{ price_min|money }}</output></label>
+          <label for="price_max">Max: <output id="price_max_label">{{ price_max|money }}</output></label>
+        </div>
+        <div class="price-sliders">
+          <input type="range" id="price_min" name="price_min" min="{{ price_low }}" max="{{ price_high }}" step="100" value="{{ price_min }}" aria-label="Minimum price">
+          <input type="range" id="price_max" name="price_max" min="{{ price_low }}" max="{{ price_high }}" step="100" value="{{ price_max }}" aria-label="Maximum price">
+        </div>
         <div class="range-row"><span>{{ price_low|money }}</span><span>{{ price_high|money }}</span></div>
       </fieldset>
 
@@ -47,9 +52,16 @@
           <label><input type="checkbox" name="favorites" value="true"{% if form.cleaned_data.favorites %} checked{% endif %}> Only my favourites</label>
         {% endif %}
       </fieldset>
+      </div>
 
-      <button type="submit">Apply</button>
-      <a class="button secondary" href="{% url 'catalog:product-list' %}">Reset</a>
+      <div class="filter-actions">
+        <button type="submit" id="apply-filters">Apply</button>
+        {% if filters_active %}
+          <a class="button secondary" href="{% url 'catalog:product-list' %}">Reset</a>
+        {% else %}
+          <a class="button secondary" aria-disabled="true" role="link">Reset</a>
+        {% endif %}
+      </div>
     </form>
   </aside>
 
@@ -80,16 +92,92 @@
 </div>
 
 <script>
-  // Live dollar labels for the price sliders; filtering itself works without JS.
+  // Progressive enhancement for the filter sidebar. Without JavaScript the whole category tree is
+  // shown, the price filter is two separate sliders and Apply is always enabled.
   (function () {
+    const form = document.getElementById("filters");
+
+    // 1. Collapsible category tree --------------------------------------------------------
+    const options = Array.from(form.querySelectorAll(".category-tree label.tree-option"));
+    const byId = new Map(options.filter((o) => o.dataset.id).map((o) => [o.dataset.id, o]));
+    const names = new Map(options.map((o) => [o, o.textContent.trim()])); // before the toggles add their own text
+    const expanded = new Set();
+    const rowOf = (label) => label.parentElement; // the widget wraps every option in a <div>
+    function isVisible(label) {
+      for (let p = label.dataset.parent; p; p = byId.get(p).dataset.parent) {
+        if (!expanded.has(p)) return false;
+      }
+      return true;
+    }
+    function renderTree() {
+      options.forEach((label) => {
+        rowOf(label).hidden = !isVisible(label);
+        const toggle = label.querySelector(".tree-toggle");
+        if (toggle) {
+          const open = expanded.has(label.dataset.id);
+          const name = names.get(label);
+          toggle.setAttribute("aria-expanded", open ? "true" : "false");
+          toggle.setAttribute("aria-label", (open ? "Collapse " : "Expand ") + name);
+        }
+      });
+    }
+    options.forEach((label) => {
+      if (label.dataset.hasChildren) {
+        const toggle = document.createElement("button");
+        toggle.type = "button";
+        toggle.className = "tree-toggle";
+        toggle.textContent = "\u25B8";
+        toggle.addEventListener("click", (event) => {
+          event.preventDefault(); // never let the surrounding <label> select the category
+          event.stopPropagation();
+          const id = label.dataset.id;
+          if (expanded.has(id)) expanded.delete(id); else expanded.add(id);
+          renderTree();
+        });
+        label.insertBefore(toggle, label.firstChild);
+      } else {
+        const spacer = document.createElement("span");
+        spacer.className = "tree-spacer";
+        label.insertBefore(spacer, label.firstChild);
+      }
+    });
+    // Open the branch that holds the selected category.
+    const checked = form.querySelector(".category-tree input:checked");
+    for (let p = checked && checked.closest("label").dataset.parent; p; p = byId.get(p).dataset.parent) {
+      expanded.add(p);
+    }
+    renderTree();
+
+    // 2. One price track with two handles -------------------------------------------------
     const fmt = (cents) => "$" + (cents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const lo = document.getElementById("price_min"), hi = document.getElementById("price_max");
+    const sliders = lo.parentElement;
+    const span = (+lo.max) - (+lo.min);
+    const fraction = (input) => (span > 0 ? ((+input.value) - (+lo.min)) / span : 0);
     function sync(e) {
       if (+lo.value > +hi.value) { if (e && e.target === lo) hi.value = lo.value; else lo.value = hi.value; }
       document.getElementById("price_min_label").textContent = fmt(+lo.value);
       document.getElementById("price_max_label").textContent = fmt(+hi.value);
+      sliders.style.setProperty("--lo", fraction(lo));
+      sliders.style.setProperty("--hi", fraction(hi));
+      // When both handles sit together in the upper half, the minimum handle must be on top so it can be dragged back.
+      lo.style.zIndex = fraction(lo) > 0.5 ? 3 : 1;
+      hi.style.zIndex = 2;
     }
     lo.addEventListener("input", sync); hi.addEventListener("input", sync);
+    form.querySelector(".price-filter").classList.add("dual");
+    sync();
+
+    // 3. Apply is enabled only while the form differs from the page as it was loaded ------
+    const apply = document.getElementById("apply-filters");
+    const state = () => Array.from(new FormData(form).entries()).map(([k, v]) => k + "=" + v).sort().join("&");
+    let snapshot = state();
+    function updateApply() { apply.disabled = state() === snapshot; }
+    // The header search box belongs to the form through form="filters" but sits outside it, so listen on the document.
+    const onEdit = (event) => { if (event.target.form === form) updateApply(); };
+    document.addEventListener("input", onEdit);
+    document.addEventListener("change", onEdit);
+    updateApply();
   })();
 </script>
 {% endblock %}

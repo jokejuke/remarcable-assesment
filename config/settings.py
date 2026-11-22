@@ -179,7 +179,7 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Maximum depth of the category tree, counting the top level as 1.
 CATALOG_MAX_CATEGORY_DEPTH = env_int("CATALOG_MAX_CATEGORY_DEPTH", 3)
-CATALOG_PAGE_SIZE = 12
+CATALOG_PAGE_SIZE = 10
 
 
 # --- REST framework / OpenAPI / JWT ------------------------------------------

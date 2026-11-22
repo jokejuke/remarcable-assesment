@@ -49,6 +49,26 @@ class CatalogEndpointTests(ApiDataMixin, APITestCase):
             self.assertIn(field, data)
         self.assertNotIn("is_favorite", data)
 
+    def test_slug_and_picture_in_list_and_detail(self):
+        Product.objects.filter(pk=self.buds.pk).update(image_url="https://example.com/buds.jpg")
+        listed = {row["id"]: row for row in self.client.get("/api/products/").json()["results"]}
+        self.assertEqual(listed[self.buds.pk]["slug"], "budget-earbuds")
+        self.assertEqual(listed[self.buds.pk]["image_url"], "https://example.com/buds.jpg")
+        detail = self.client.get(f"/api/products/{self.buds.pk}/").json()
+        self.assertEqual((detail["slug"], detail["image_url"]), ("budget-earbuds", "https://example.com/buds.jpg"))
+        for row in listed.values():
+            self.assertIn("slug", row)
+            self.assertIn("image_url", row)
+
+    def test_product_without_picture_has_empty_image_url(self):
+        self.assertEqual(self.client.get(f"/api/products/{self.studio.pk}/").json()["image_url"], "")
+
+    def test_schema_lists_slug_and_image_url(self):
+        schema = self.client.get("/api/schema/", HTTP_ACCEPT="application/json").json()
+        props = schema["components"]["schemas"]["Product"]["properties"]
+        self.assertIn("slug", props)
+        self.assertIn("image_url", props)
+
     def test_authenticated_detail_has_is_favorite(self):
         Favorite.objects.create(user=self.shopper, product=self.buds)
         self.client.force_authenticate(self.shopper)

@@ -8,7 +8,7 @@ from django.db.models import Max, Min
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
-from django.views.generic import ListView
+from django.views.generic import DetailView, ListView
 
 from .category_tree import get_category_tree
 from .filters import ProductFilterSet
@@ -57,6 +57,24 @@ class ProductListView(ListView):
             return Product.objects.none()
         return self.filterset.qs
 
+    def _filters_active(self, data, price_min, price_max, low, high):
+        """True when the page applies anything beyond the defaults.
+
+        Defaults: empty search, no category or tags, ALL matching, the full price range, and the
+        stock and favourites options off. (`favorites` is ignored for anonymous visitors.)
+        """
+        tags = data.get("tags")
+        return bool(
+            data.get("q")
+            or data.get("category")
+            or tags
+            or (data.get("match") == "any" and tags)
+            or data.get("include_out_of_stock")
+            or (data.get("favorites") and self.request.user.is_authenticated)
+            or price_min != low
+            or price_max != high
+        )
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         query = self.request.GET.copy()
@@ -65,19 +83,38 @@ class ProductListView(ListView):
         low, high = bounds["low"] or 0, bounds["high"] or 0
         # Slider steps are whole dollars; round the bounds outwards.
         low, high = low // 100 * 100, -(-high // 100) * 100
-        data = self.filterset.form.cleaned_data if self.filterset.is_valid() else {}
+        valid = self.filterset.is_valid()
+        data = self.filterset.form.cleaned_data if valid else {}
+        price_min = data.get("price_min") if data.get("price_min") is not None else low
+        price_max = data.get("price_max") if data.get("price_max") is not None else high
         context.update(
+            filters_active=not valid or self._filters_active(data, price_min, price_max, low, high),
             filter=self.filterset,
             form=self.filterset.form,
             category_tree=get_category_tree(),
             querystring=query.urlencode(),
             price_low=low,
             price_high=high,
-            price_min=data.get("price_min") if data.get("price_min") is not None else low,
-            price_max=data.get("price_max") if data.get("price_max") is not None else high,
+            price_min=price_min,
+            price_max=price_max,
             selected_tags={str(t) for t in self.request.GET.getlist("tags")},
             current_url=self.request.get_full_path(),
         )
+        return context
+
+
+class ProductDetailView(DetailView):
+    """One product's page, found by slug. Shows out-of-stock products too."""
+
+    template_name = "catalog/product_detail.html"
+    context_object_name = "product"
+
+    def get_queryset(self):
+        return Product.objects.for_listing(self.request.user)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["current_url"] = self.request.get_full_path()
         return context
 
 

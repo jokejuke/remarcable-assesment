@@ -36,6 +36,44 @@ class ProductAndTagModelTests(TestCase):
         with self.assertRaises(IntegrityError):
             tags("wireless")
 
+    def test_generated_slug(self):
+        p = product("Aurora ANC Headphones", self.t["headphones"])
+        self.assertEqual(p.slug, "aurora-anc-headphones")
+
+    def test_colliding_slug_gets_suffix(self):
+        product("C Primer", self.t["fiction"])
+        self.assertEqual(product("C++ Primer", self.t["fiction"]).slug, "c-primer-2")
+        self.assertEqual(product("C Primer!", self.t["fiction"]).slug, "c-primer-3")
+
+    def test_slug_fallback_for_unsluggable_name(self):
+        self.assertEqual(product("!!!", self.t["fiction"]).slug, "product")
+        self.assertEqual(product("???", self.t["fiction"]).slug, "product-2")
+
+    def test_rename_keeps_slug(self):
+        p = product("Aurora ANC Headphones", self.t["headphones"])
+        p.name = "Aurora ANC Headphones II"
+        p.save()
+        p.refresh_from_db()
+        self.assertEqual(p.slug, "aurora-anc-headphones")
+
+    def test_duplicate_hand_set_slug_rejected(self):
+        product("Buds", self.t["headphones"])
+        other = Product(name="Other", price_cents=1, category=self.t["headphones"], slug="buds")
+        with self.assertRaises(ValidationError) as ctx:
+            other.full_clean()
+        self.assertIn("slug", ctx.exception.message_dict)
+
+    def test_picture_must_be_http_url(self):
+        for bad in ("javascript:alert(1)", "ftp://example.com/a.png", "not a url"):
+            p = Product(name="X", price_cents=1, category=self.t["headphones"], image_url=bad)
+            with self.assertRaises(ValidationError) as ctx:
+                p.full_clean()
+            self.assertIn("image_url", ctx.exception.message_dict, bad)
+
+    def test_picture_is_optional_and_accepts_https(self):
+        for good in ("", "https://upload.wikimedia.org/a.jpg", "http://example.com/a.png"):
+            Product(name="X", price_cents=1, category=self.t["headphones"], image_url=good).full_clean()
+
     def test_negative_price_rejected(self):
         with self.assertRaises(IntegrityError), transaction.atomic():
             product("Bad", self.t["headphones"], price_cents=-1)
@@ -149,6 +187,37 @@ class ProductAdminTests(TestCase):
         self.assertEqual(response.status_code, 302)
         p = Product.objects.get(name="Buds")
         self.assertEqual(p.tags.count(), 2)
+
+    def test_admin_forms_show_slug_and_picture(self):
+        for url in (
+            reverse("admin:catalog_product_add"),
+            reverse("admin:catalog_product_change", args=[product("Buds", self.t["headphones"]).pk]),
+        ):
+            form = self.client.get(url).context["adminform"].form
+            self.assertIn("slug", form.fields)
+            self.assertIn("image_url", form.fields)
+        self.assertContains(self.client.get(reverse("admin:catalog_product_add")), "data-prepopulated-fields")
+
+    def test_admin_creates_product_with_picture_and_slug(self):
+        response = self.client.post(
+            reverse("admin:catalog_product_add"),
+            {
+                "name": "Buds", "slug": "my-buds", "image_url": "https://example.com/b.jpg", "description": "d",
+                "price_cents": 4900, "items_available": 5, "category": self.t["headphones"].pk,
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+        p = Product.objects.get(name="Buds")
+        self.assertEqual((p.slug, p.image_url), ("my-buds", "https://example.com/b.jpg"))
+
+    def test_admin_rejects_javascript_picture(self):
+        response = self.client.post(
+            reverse("admin:catalog_product_add"),
+            {"name": "Buds", "image_url": "javascript:alert(1)", "price_cents": 1, "items_available": 1,
+             "category": self.t["headphones"].pk},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("image_url", response.context["adminform"].form.errors)
 
     def test_admin_rejects_subcategory_holding_category(self):
         response = self.client.post(

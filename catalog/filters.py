@@ -19,17 +19,23 @@ def category_choices():
 
 
 class CategoryTreeWidget(forms.RadioSelect):
-    """Radio buttons indented by tree depth, with "All" first."""
+    """Radio buttons indented by tree depth, with "All" first.
+
+    Each option also carries `data-id`, `data-parent` and `data-has-children`, which the
+    storefront script uses to collapse and expand branches.
+    """
 
     option_template_name = "catalog/widgets/category_option.html"
 
     def create_option(self, name, value, label, selected, index, subindex=None, attrs=None):
         option = super().create_option(name, value, label, selected, index, subindex, attrs)
         option["depth"] = 0
+        option["node"] = None
         if value not in (None, ""):
             for node in get_category_tree().nodes:
                 if str(node.id) == str(value):
                     option["depth"] = node.depth
+                    option["node"] = node
                     break
         return option
 
