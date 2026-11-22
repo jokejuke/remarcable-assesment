@@ -3,7 +3,7 @@
 from django.db import transaction
 from django.db.models import F
 
-from .models import Order, OrderItem, Product, unix_now
+from catalog.models import Order, OrderItem, Product, unix_now
 
 
 class OutOfStock(Exception):

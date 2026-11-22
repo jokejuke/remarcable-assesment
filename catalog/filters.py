@@ -10,34 +10,12 @@ import django_filters
 from django import forms
 from django_filters.widgets import BooleanWidget
 
-from .category_tree import get_category_tree
-from .models import Tag
+from catalog.category_tree import get_category_tree
+from catalog.models import Tag
 
 
 def category_choices():
     return [(node.id, node.name) for node in get_category_tree().nodes]
-
-
-class CategoryTreeWidget(forms.RadioSelect):
-    """Radio buttons indented by tree depth, with "All" first.
-
-    Each option also carries `data-id`, `data-parent` and `data-has-children`, which the
-    storefront script uses to collapse and expand branches.
-    """
-
-    option_template_name = "catalog/widgets/category_option.html"
-
-    def create_option(self, name, value, label, selected, index, subindex=None, attrs=None):
-        option = super().create_option(name, value, label, selected, index, subindex, attrs)
-        option["depth"] = 0
-        option["node"] = None
-        if value not in (None, ""):
-            for node in get_category_tree().nodes:
-                if str(node.id) == str(value):
-                    option["depth"] = node.depth
-                    option["node"] = node
-                    break
-        return option
 
 
 class IntegerFilter(django_filters.NumberFilter):
@@ -59,7 +37,6 @@ class ProductFilterSet(django_filters.FilterSet):
         choices=category_choices,
         empty_label="All",
         method="filter_category",
-        widget=CategoryTreeWidget,
         help_text="Category id; includes every category below it.",
     )
     tags = django_filters.ModelMultipleChoiceFilter(

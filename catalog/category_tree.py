@@ -36,7 +36,7 @@ class CategoryTree:
         for ids in children.values():
             ids.sort(key=lambda i: by_id[i][1].lower())
 
-        nodes, paths, descendants = [], {}, {}
+        nodes, paths, descendants, product_descendants = [], {}, {}, {}
 
         def visit(node_id, depth, prefix):
             parent_id, name, has_products, has_subcategories = by_id[node_id]
@@ -47,6 +47,7 @@ class CategoryTree:
             for child in children.get(node_id, []):
                 subtree |= visit(child, depth + 1, label)
             descendants[node_id] = frozenset(subtree)
+            product_descendants[node_id] = frozenset(i for i in subtree if by_id[i][2])
             return subtree
 
         for root in children.get(None, []):
@@ -55,6 +56,7 @@ class CategoryTree:
         self._nodes = tuple(nodes)
         self._paths = paths
         self._descendants = descendants
+        self._product_descendants = product_descendants
 
     @property
     def nodes(self):
@@ -72,9 +74,13 @@ class CategoryTree:
         """Ids of the category and every category below it."""
         return self._descendants.get(category_id, frozenset())
 
+    def product_descendant_ids(self, category_id):
+        """Ids of the category and every category below it that can hold products (`has_products`)."""
+        return self._product_descendants.get(category_id, frozenset())
+
 
 def build_category_tree():
-    from .models import Category
+    from catalog.models import Category
 
     rows = Category.objects.order_by().values_list("id", "parent_id", "name", "has_products", "has_subcategories")
     return CategoryTree(list(rows))

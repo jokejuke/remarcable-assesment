@@ -68,3 +68,10 @@ The login page SHALL link to the sign-up page and the sign-up page SHALL link to
 #### Scenario: External target
 - **WHEN** the sign-up form is submitted with `next=https://evil.example`
 - **THEN** the new user is sent to the home page
+
+### Requirement: Email shown as identity
+Wherever the site shows who is signed in, it SHALL show the account's email address, and every sign-in or sign-up form on the site SHALL ask for "Email", not "Username".
+
+#### Scenario: Header identity
+- **WHEN** `shopper@example.com` is logged in
+- **THEN** the header shows "Signed in as shopper@example.com"

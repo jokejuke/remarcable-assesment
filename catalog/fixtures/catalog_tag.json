@@ -1,0 +1,110 @@
+[
+  {
+    "model": "catalog.tag",
+    "pk": 1,
+    "fields": {
+      "created_at": 1795364221,
+      "updated_at": 1795364221,
+      "name": "wireless"
+    }
+  },
+  {
+    "model": "catalog.tag",
+    "pk": 2,
+    "fields": {
+      "created_at": 1795364221,
+      "updated_at": 1795364221,
+      "name": "bluetooth"
+    }
+  },
+  {
+    "model": "catalog.tag",
+    "pk": 3,
+    "fields": {
+      "created_at": 1795364221,
+      "updated_at": 1795364221,
+      "name": "budget"
+    }
+  },
+  {
+    "model": "catalog.tag",
+    "pk": 4,
+    "fields": {
+      "created_at": 1795364221,
+      "updated_at": 1795364221,
+      "name": "premium"
+    }
+  },
+  {
+    "model": "catalog.tag",
+    "pk": 5,
+    "fields": {
+      "created_at": 1795364221,
+      "updated_at": 1795364221,
+      "name": "portable"
+    }
+  },
+  {
+    "model": "catalog.tag",
+    "pk": 6,
+    "fields": {
+      "created_at": 1795364221,
+      "updated_at": 1795364221,
+      "name": "noise-cancelling"
+    }
+  },
+  {
+    "model": "catalog.tag",
+    "pk": 7,
+    "fields": {
+      "created_at": 1795364221,
+      "updated_at": 1795364221,
+      "name": "gaming"
+    }
+  },
+  {
+    "model": "catalog.tag",
+    "pk": 8,
+    "fields": {
+      "created_at": 1795364221,
+      "updated_at": 1795364221,
+      "name": "eco-friendly"
+    }
+  },
+  {
+    "model": "catalog.tag",
+    "pk": 9,
+    "fields": {
+      "created_at": 1795364221,
+      "updated_at": 1795364221,
+      "name": "bestseller"
+    }
+  },
+  {
+    "model": "catalog.tag",
+    "pk": 10,
+    "fields": {
+      "created_at": 1795364221,
+      "updated_at": 1795364221,
+      "name": "gift-idea"
+    }
+  },
+  {
+    "model": "catalog.tag",
+    "pk": 11,
+    "fields": {
+      "created_at": 1795364221,
+      "updated_at": 1795364221,
+      "name": "waterproof"
+    }
+  },
+  {
+    "model": "catalog.tag",
+    "pk": 12,
+    "fields": {
+      "created_at": 1795364221,
+      "updated_at": 1795364221,
+      "name": "new-arrival"
+    }
+  }
+]

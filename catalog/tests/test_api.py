@@ -1,12 +1,13 @@
 """Spec: catalog-api, plus the API side of favorites and checkout."""
 
 from django.core.cache import cache
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from rest_framework.test import APITestCase
 
 from catalog.models import Favorite, Order, Product
-
-from .factories import build_tree, product, tags, user
+from catalog.tests.factories import build_tree, product, tags, user
 
 
 class ApiDataMixin:
@@ -220,6 +221,47 @@ class FavoritesApiTests(ApiDataMixin, APITestCase):
         self.client.force_authenticate(self.other)
         self.client.delete(f"/api/favorites/{self.buds.pk}/")
         self.assertTrue(Favorite.objects.filter(user=self.shopper).exists())
+
+    def test_slugs_lists_own_favourites_only(self):
+        Favorite.objects.create(user=self.shopper, product=self.buds)
+        Favorite.objects.create(user=self.shopper, product=self.novel)
+        Favorite.objects.create(user=self.other, product=self.studio)
+        self.client.force_authenticate(self.shopper)
+        response = self.client.get("/api/favorites/slugs/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(sorted(response.json()), sorted([self.buds.slug, self.novel.slug]))
+
+    def test_slugs_empty_list(self):
+        self.client.force_authenticate(self.shopper)
+        response = self.client.get("/api/favorites/slugs/")
+        self.assertEqual((response.status_code, response.json()), (200, []))
+
+    def test_slugs_anonymous_rejected(self):
+        response = self.client.get("/api/favorites/slugs/")
+        self.assertEqual(response.status_code, 401)
+        self.assertNotIn(self.buds.slug, response.content.decode())
+
+    def test_slugs_accepts_token_auth(self):
+        Favorite.objects.create(user=self.shopper, product=self.buds)
+        from rest_framework_simplejwt.tokens import AccessToken
+
+        token = AccessToken.for_user(self.shopper)
+        response = self.client.get("/api/favorites/slugs/", headers={"Authorization": f"Bearer {token}"})
+        self.assertEqual(response.json(), [self.buds.slug])
+
+    def test_slugs_query_count_is_constant(self):
+        self.client.force_authenticate(self.shopper)
+
+        def queries():
+            with CaptureQueriesContext(connection) as ctx:
+                self.client.get("/api/favorites/slugs/")
+            return len(ctx)
+
+        Favorite.objects.create(user=self.shopper, product=self.buds)
+        one = queries()
+        for p in (self.studio, self.speaker, self.novel, self.sold):
+            Favorite.objects.create(user=self.shopper, product=p)
+        self.assertEqual(queries(), one)
 
 
 class OrdersApiTests(ApiDataMixin, APITestCase):

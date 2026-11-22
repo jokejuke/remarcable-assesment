@@ -4,9 +4,9 @@ from django import forms
 from django.contrib import admin
 from django.db.models import Count
 
-from .category_tree import get_category_tree
-from .models import Category, Favorite, Order, OrderItem, Product, Tag
-from .templatetags.money import format_cents, format_unix
+from catalog.category_tree import get_category_tree
+from catalog.models import Category, Favorite, Order, OrderItem, Product, Tag
+from catalog.templatetags.money import format_cents, format_unix
 
 
 class TimestampsMixin:

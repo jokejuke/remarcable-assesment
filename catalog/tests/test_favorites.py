@@ -1,4 +1,4 @@
-"""Spec: favorites (model, queryset, storefront views)."""
+"""Spec: favorites (model, queryset, storefront pages)."""
 
 from django.core.cache import cache
 from django.db import IntegrityError, connection
@@ -8,8 +8,7 @@ from django.urls import reverse
 
 from catalog.filters import ProductFilterSet
 from catalog.models import Favorite, Product
-
-from .factories import build_tree, product, tags, user
+from catalog.tests.factories import build_tree, product, tags, user
 
 HOME = reverse("catalog:product-list")
 
@@ -86,42 +85,18 @@ class FavoriteViewTests(TestCase):
         self.sold = product("Gone", self.t["headphones"], items_available=0)
         self.u = user()
         self.client.force_login(self.u)
-        self.add = reverse("catalog:favorite-add", args=[self.p.pk])
-        self.remove = reverse("catalog:favorite-remove", args=[self.p.pk])
 
-    def test_add_twice_keeps_one(self):
-        next_url = f"{HOME}?q=Buds"
-        response = self.client.post(self.add, {"next": next_url})
-        self.assertRedirects(response, next_url)
-        self.client.post(self.add, {"next": next_url})
-        self.assertEqual(Favorite.objects.filter(user=self.u, product=self.p).count(), 1)
-        page = self.client.get(next_url)
-        self.assertContains(page, "♥ Favourite")
+    def test_redirecting_favourite_views_are_gone(self):
+        for suffix in ("favorite", "unfavorite"):
+            self.assertEqual(self.client.post(f"/products/{self.p.pk}/{suffix}/").status_code, 404)
 
-    def test_remove_twice_is_safe(self):
+    def test_list_pages_have_no_favourite_control(self):
         Favorite.objects.create(user=self.u, product=self.p)
-        self.assertEqual(self.client.post(self.remove).status_code, 302)
-        self.assertEqual(self.client.post(self.remove).status_code, 302)
-        self.assertFalse(Favorite.objects.exists())
-
-    def test_anonymous_redirected_to_login_and_back(self):
-        self.client.logout()
-        next_url = f"{HOME}?q=Buds"
-        response = self.client.post(self.add, {"next": next_url})
-        self.assertRedirects(response, f"{reverse('login')}?next=/%3Fq%3DBuds", fetch_redirect_response=False)
-        self.assertFalse(Favorite.objects.exists())
-
-    def test_external_next_falls_back_to_home(self):
-        response = self.client.post(self.add, {"next": "https://evil.example/"})
-        self.assertRedirects(response, "/", fetch_redirect_response=False)
-
-    def test_get_not_allowed(self):
-        self.assertEqual(self.client.get(self.add).status_code, 405)
-        self.assertEqual(self.client.get(self.remove).status_code, 405)
-        self.assertFalse(Favorite.objects.exists())
-
-    def test_unknown_product_404(self):
-        self.assertEqual(self.client.post(reverse("catalog:favorite-add", args=[999999])).status_code, 404)
+        for url in (HOME, reverse("catalog:my-favorites")):
+            html = self.client.get(url).content.decode()
+            self.assertNotIn("♥", html)
+            self.assertNotIn("♡ Favourite", html)
+            self.assertNotIn('class="fav', html)
 
     def test_only_favourites_checkbox_for_logged_in(self):
         self.assertContains(self.client.get(HOME), 'name="favorites"')

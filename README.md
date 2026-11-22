@@ -29,20 +29,21 @@ Beyond the brief it adds a nested category tree, stock and prices, favourites, o
 ### User workflow
 
 1. **An administrator manages the catalog** at `/admin/` (demo login `admin@example.com`): builds the category tree, creates tags, and adds products with a price, stock, a category and tags. Orders are visible there but read-only.
-2. **A shopper browses the storefront** at `/`. Anyone can search from the header and filter from the sidebar by category (including subcategories), tags (all or any), price range and stock, then press **Apply** (or **Reset**). Every filter lives in the URL, so results can be bookmarked and paginated. Each card shows the product's picture (or a placeholder), its price and stock, a **Details** link and, for products in stock, a **Buy** button. Visitors who are not logged in see these too.
-3. **Details** opens the product page at `/products/<slug>/` with the picture, the full description, the category path, tags, price and stock, plus **Buy** (when in stock) and, for logged-in users, **♡ Favourite**. Out-of-stock products have a page too, without Buy.
-4. **Visitors who click Buy** are sent to the login page and, after logging in or signing up, come back to the page they were on. Nothing is bought until they click Buy again. Anyone can **create an account** at `/accounts/signup/` (linked from the login page) with an email address and a password entered twice; the email becomes the username, and the new account is a regular shopper with no admin access. Logged-in users also get **♡ Favourite** on every card and **Only my favourites** in the sidebar. Favourites are toggled from any card or product page and listed under **My favourites**, including products that are now out of stock.
+2. **A shopper browses the storefront** at `/`. Anyone can search from the header and filter from the sidebar by category (a nested tree of expandable groups; picking a parent includes its subcategories), tags (all or any), price range and stock, then press **Apply** (or **Reset**). Every filter lives in the URL, so results can be bookmarked and paginated. Each card shows the product's picture (or a placeholder), its price and stock, a **Details** link and, for products in stock, a **Buy** button. Visitors who are not logged in see these too.
+3. **Details** opens the product page at `/products/<slug>/` with the picture, the full description, the category path, tags, price and stock, plus **Buy** (when in stock) and, for logged-in users, **♡ Favourite**, which adds or removes the favourite in the background without reloading the page. Visitors who are not logged in see a **Log in to favourite** link instead. Out-of-stock products have a page too, without Buy.
+4. **Visitors who click Buy** are sent to the login page and, after logging in or signing up, come back to the page they were on. Nothing is bought until they click Buy again. Anyone can **create an account** at `/accounts/signup/` (linked from the login page) with an email address and a password entered twice; the email becomes the username, and the new account is a regular shopper with no admin access. Logged-in users also get **Only my favourites** in the sidebar and a **My favourites (N)** link in the header, which counts their favourites and follows changes made on the product page. Favourites are toggled only on the product page (the cards carry no heart) and listed under **My favourites**, including products that are now out of stock.
 5. **Buy** places a one-unit order straight away and shows a confirmation, or an "out of stock" message if someone bought the last unit first. Stock drops immediately.
-6. **My orders** lists past orders, newest first, with the prices that were paid.
+6. **My orders** lists past orders, newest first, with the prices that were paid. Times are shown in your browser's time zone (UTC when JavaScript is off).
 7. **API clients** use the same catalog through `/api/`: read the products with the storefront's filter parameters, get a JWT at `/api/auth/token/`, then manage favourites and place multi-item orders. Everything can be tried in Swagger UI at `/api/docs/` (see [API](#api)).
 
 ### Development workflow
 
 ```bash
 uv sync                                                          # install dependencies into .venv
-uv run --env-file .env python manage.py test                     # run the test suite (~270 tests)
+uv run --env-file .env python manage.py test                     # run the test suite (~290 tests)
 uv run --env-file .env python manage.py makemigrations --check   # confirm models and migrations agree
 uv run --env-file .env python manage.py spectacular --validate --fail-on-warn --file /dev/null   # check the OpenAPI schema
+uv run ruff check                                                 # lint (also forbids relative imports)
 ```
 
 Code layout (`catalog/` is the only app):
@@ -84,7 +85,7 @@ Install [uv](https://docs.astral.sh/uv/getting-started/installation/), then:
 uv sync
 cp .env.example .env
 uv run --env-file .env python manage.py migrate
-uv run --env-file .env python manage.py loaddata catalog demo_users
+uv run --env-file .env python manage.py loaddata catalog_category catalog_tag catalog_product demo_users
 uv run --env-file .env python manage.py runserver
 ```
 
@@ -92,9 +93,9 @@ Open http://127.0.0.1:8000/ for the storefront and http://127.0.0.1:8000/admin/ 
 
 ### Demo data
 
-Two fixtures live in `catalog/fixtures/`. Load them **in this order**, because the users fixture refers to catalog products through the first shopper's favourites:
+Fixtures live in `catalog/fixtures/`, one JSON file per model. Load them **in this order** (categories, tags, products, then users), because products refer to categories and tags, and the users fixture refers to products through the first shopper's favourites:
 
-1. `catalog.json`: **7 categories** in a three-level tree (Books; Electronics > Audio > Headphones and Speakers; Electronics > Computers & Phones; Home & Outdoors), 12 tags and **25 products** (2 of them out of stock), spread over three storefront pages. 24 products have a picture; "Starfall Chronicles" has none, so it shows the placeholder. It was exported with `dumpdata catalog.category catalog.tag catalog.product --indent 2` and contains no user accounts.
+1. `catalog_category.json`, `catalog_tag.json`, `catalog_product.json`: **7 categories** in a three-level tree (Books; Electronics > Audio > Headphones and Speakers; Electronics > Computers & Phones; Home & Outdoors), 12 tags and **25 products** (2 of them out of stock), spread over three storefront pages. Every product has a picture link. They were exported with `dumpdata catalog.category catalog.tag catalog.product --indent 2` and split by model, and contain no user accounts.
 2. `demo_users.json`: three accounts and the first shopper's favourites. Passwords are stored only as hashes.
 
 | User (email) | Password | Access |
@@ -103,13 +104,15 @@ Two fixtures live in `catalog/fixtures/`. Load them **in this order**, because t
 | `shopper@example.com` | `demo-shopper-123` | Storefront and API only (no admin), with 4 favourites |
 | `shopper2@example.com` | `demo-shopper2-123` | Storefront and API only (no admin), with no favourites |
 
-**Pictures need internet access.** Each `image_url` points at a freely licensed photo on [Wikimedia Commons](https://commons.wikimedia.org/) (960px thumbnails on `upload.wikimedia.org`). Offline, or if a link breaks, cards and product pages show the placeholder. The photos are only illustrations: the products are fictional, and each file keeps its own Commons licence.
+**Pictures need internet access.** Each `image_url` points at a freely licensed photo on [Wikimedia Commons](https://commons.wikimedia.org/) (960px thumbnails on `upload.wikimedia.org`). Offline, or if a link breaks, cards and product pages show the placeholder. Only the links are stored; no image files are downloaded or kept in the repository.
+
+**An existing database keeps whatever picture links it had when it was loaded.** A database created before `image_url` existed shows placeholders everywhere. Reload the fixtures (next paragraph) to get the pictures. The photos are only illustrations: the products are fictional, and each file keeps its own Commons licence.
 
 To start again from clean demo data, for example after pulling a new version of the fixtures, reload everything (this deletes all data in the database, including orders and accounts you created):
 
 ```bash
 uv run --env-file .env python manage.py flush --no-input
-uv run --env-file .env python manage.py loaddata catalog demo_users
+uv run --env-file .env python manage.py loaddata catalog_category catalog_tag catalog_product demo_users
 ```
 
 > **Warning:** never load `demo_users` in production. Its passwords are public in this README.
@@ -131,7 +134,7 @@ uv run --env-file .env python manage.py loaddata catalog demo_users
 
 - **Sign-up** (`/accounts/signup/`) takes an email address and a password twice. The password must pass Django's validators (at least 8 characters, not too common, not all digits, not too similar to the email). There is no email verification and no password reset.
 - **The email is the username**, stored in lower case. A second sign-up with the same address in any letter case is rejected.
-- **Login** (`/accounts/login/`) labels the first field "Email" and matches it ignoring letter case. The admin login and the API token endpoint (`/api/auth/token/`) still match the username exactly, so use the lower-case email there.
+- **Login** (`/accounts/login/`) labels the first field "Email" and matches it ignoring letter case. The API token endpoint (`/api/auth/token/`) also takes the email (`email`, any letter case) and a password; it no longer accepts a `username` field. The header shows "Signed in as" your email. Only the Django admin login keeps its own "Username" field, and the demo admin's username is already `admin@example.com`.
 - Both pages keep the `next` target, so a visitor who clicked Buy lands back on the same page. Only targets on this site are accepted.
 
 ### Search and filters
@@ -141,7 +144,7 @@ The storefront and the API share one filter definition (`catalog/filters.py`), s
 | Parameter | Meaning |
 |---|---|
 | `q` | Search text. It's split into words (up to 10) and **every word** must appear in the name or the description. |
-| `category` | One category id. It **includes every category below it**. |
+| `category` | One category id. It **includes every category below it**; only categories that hold products are queried. |
 | `tags` | Tag ids, repeated (`tags=1&tags=4`). |
 | `match` | `all` (default): products must have every selected tag. `any`: at least one. Each product appears once. |
 | `price_min`, `price_max` | Inclusive bounds **in cents**. A minimum above the maximum is an error. |
@@ -182,10 +185,11 @@ The JSON API lives under `/api/`. Interactive docs (Swagger UI) are at **`/api/d
 | `/api/categories/`, `/api/categories/{id}/` | GET | none | Parent id, full `path`, `has_products` / `has_subcategories`. |
 | `/api/tags/`, `/api/tags/{id}/` | GET | none | |
 | `/api/favorites/` | GET, POST | required | POST `{"product": 7}` returns 201, or 200 if it was already a favourite. Unknown product: 400. |
+| `/api/favorites/slugs/` | GET | required | A flat JSON array with the slugs of your favourite products, in one query. The storefront uses it for the header count and the product page's heart. |
 | `/api/favorites/{product_id}/` | DELETE | required | 204 whether or not it was a favourite. |
 | `/api/orders/` | GET, POST | required | POST `{"items": [{"product": 7, "quantity": 2}]}` returns 201 with items and total; 400 for bad input; **409** `{"out_of_stock": [ids]}` when stock is short. |
 | `/api/orders/{id}/` | GET | required | Other users' orders return 404. |
-| `/api/auth/token/` | POST | none | Username and password in, `access` and `refresh` tokens out. |
+| `/api/auth/token/` | POST | none | Email and password in, `access` and `refresh` tokens out. |
 | `/api/auth/token/refresh/` | POST | none | Refresh token in, new pair out (the old refresh token stops working). |
 | `/api/auth/logout/` | POST | none | Revokes the given refresh token. |
 
@@ -202,7 +206,7 @@ With curl (the demo shopper, server on port 8000):
 # 1. Get a token pair
 curl -s -X POST http://127.0.0.1:8000/api/auth/token/ \
   -H "Content-Type: application/json" \
-  -d '{"username": "shopper@example.com", "password": "demo-shopper-123"}'
+  -d '{"email": "shopper@example.com", "password": "demo-shopper-123"}'
 
 # 2. Call the API with the access token
 ACCESS=<access token from step 1>

@@ -1,5 +1,6 @@
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from catalog.category_tree import get_category_tree
 from catalog.models import Category, Favorite, Order, OrderItem, Product, Tag
@@ -117,3 +118,21 @@ class OrderCreateSerializer(serializers.Serializer):
 
 class OutOfStockSerializer(serializers.Serializer):
     out_of_stock = serializers.ListField(child=serializers.IntegerField(), help_text="Ids of products lacking stock.")
+
+
+class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
+    """Token login by email and password. The email is the account's username, matched ignoring case."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        del self.fields[self.username_field]
+        self.fields["email"] = serializers.EmailField(write_only=True, max_length=150)
+
+    def validate(self, attrs):
+        credentials = {self.username_field: attrs["email"].strip().lower(), "password": attrs["password"]}
+        return super().validate(credentials)
+
+
+class TokenPairSerializer(serializers.Serializer):
+    access = serializers.CharField(help_text="Short-lived token for the `Authorization: Bearer` header.")
+    refresh = serializers.CharField(help_text="Long-lived token for `/api/auth/token/refresh/` and logout.")

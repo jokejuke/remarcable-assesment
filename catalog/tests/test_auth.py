@@ -5,17 +5,17 @@ from datetime import timedelta
 from rest_framework.test import APIClient, APITestCase
 from rest_framework_simplejwt.tokens import AccessToken
 
-from .factories import build_tree, product, user
+from catalog.tests.factories import build_tree, product, user
 
 PASSWORD = "pass-for-tests-123"
 
 
 class JwtTests(APITestCase):
     def setUp(self):
-        self.shopper = user("shopper", PASSWORD)
+        self.shopper = user("shopper@example.com", PASSWORD, email="shopper@example.com")
 
     def obtain(self, password=PASSWORD):
-        return self.client.post("/api/auth/token/", {"username": "shopper", "password": password}, format="json")
+        return self.client.post("/api/auth/token/", {"email": "shopper@example.com", "password": password}, format="json")
 
     def test_valid_login_returns_pair(self):
         response = self.obtain()
@@ -27,6 +27,25 @@ class JwtTests(APITestCase):
         response = self.obtain("nope")
         self.assertEqual(response.status_code, 401)
         self.assertNotIn("access", response.data)
+
+    def test_mixed_case_email_logs_in(self):
+        response = self.client.post(
+            "/api/auth/token/", {"email": "Shopper@Example.com", "password": PASSWORD}, format="json"
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("access", response.data)
+
+    def test_username_only_request_is_400(self):
+        response = self.client.post(
+            "/api/auth/token/", {"username": "shopper@example.com", "password": PASSWORD}, format="json"
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("email", response.data)
+        self.assertNotIn("access", response.data)
+
+    def test_unknown_email_401(self):
+        response = self.client.post("/api/auth/token/", {"email": "nobody@example.com", "password": PASSWORD}, format="json")
+        self.assertEqual(response.status_code, 401)
 
     def test_bearer_token_authenticates(self):
         access = self.obtain().data["access"]

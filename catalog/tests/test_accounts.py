@@ -5,8 +5,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from catalog.models import Order
-
-from .factories import build_tree, product, user
+from catalog.tests.factories import build_tree, product, user
 
 User = get_user_model()
 SIGNUP = reverse("signup")
@@ -177,9 +176,3 @@ class EmailLoginTests(TestCase):
     def test_non_email_username_still_logs_in_by_exact_match(self):
         user("legacy", PASSWORD)
         self.assertRedirects(self.login("legacy"), HOME, fetch_redirect_response=False)
-
-    def test_api_token_endpoint_still_matches_exactly(self):
-        response = self.client.post(
-            "/api/auth/token/", {"username": "Shopper@Example.com", "password": PASSWORD}, content_type="application/json"
-        )
-        self.assertEqual(response.status_code, 401)

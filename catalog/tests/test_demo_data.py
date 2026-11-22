@@ -10,7 +10,7 @@ from catalog.models import Category, Favorite, Product, Tag
 
 
 class CatalogFixtureOnlyTests(TestCase):
-    fixtures = ["catalog"]
+    fixtures = ["catalog_category", "catalog_tag", "catalog_product"]
 
     def test_counts(self):
         self.assertGreaterEqual(Category.objects.count(), 5)
@@ -53,11 +53,13 @@ class CatalogFixtureOnlyTests(TestCase):
         self.assertFalse(Product.objects.filter(category__has_products=False).exists())
         self.assertEqual(Category.objects.filter(products__isnull=False).distinct().count(), 5)
 
-    def test_most_products_have_a_picture_and_at_least_one_does_not(self):
-        without = Product.objects.filter(image_url="")
-        self.assertGreaterEqual(without.count(), 1)
-        self.assertGreater(Product.objects.exclude(image_url="").count(), Product.objects.count() // 2)
-        self.assertTrue(all(p.image_url.startswith("https://") for p in Product.objects.exclude(image_url="")))
+    def test_every_product_has_an_http_picture_link(self):
+        for p in Product.objects.all():
+            with self.subTest(product=p.name):
+                self.assertRegex(p.image_url, r"^https?://[^\s/]+/\S+$")
+
+    def test_pictures_are_links_not_embedded_files(self):
+        self.assertFalse(Product.objects.filter(image_url__startswith="data:").exists())
 
     def test_every_product_has_a_unique_slug(self):
         slugs = list(Product.objects.values_list("slug", flat=True))
@@ -85,7 +87,7 @@ class CatalogFixtureOnlyTests(TestCase):
 
 
 class FixtureValidationTests(TestCase):
-    fixtures = ["catalog", "demo_users"]
+    fixtures = ["catalog_category", "catalog_tag", "catalog_product", "demo_users"]
 
     def test_every_record_passes_full_clean(self):
         """`loaddata` skips model validation, so check every rule here."""

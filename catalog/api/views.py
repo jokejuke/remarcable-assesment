@@ -1,13 +1,14 @@
 from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import mixins, permissions, status, viewsets
+from rest_framework.decorators import action
 from rest_framework.exceptions import APIException, NotAuthenticated
 from rest_framework.response import Response
+from rest_framework_simplejwt.views import TokenObtainPairView
 
+from catalog.api import serializers as s
 from catalog.filters import ProductFilterSet
 from catalog.models import Category, Favorite, Order, Product, Tag
 from catalog.services import OutOfStock, place_order
-
-from . import serializers as s
 
 
 class OutOfStockError(APIException):
@@ -18,6 +19,13 @@ class OutOfStockError(APIException):
     def __init__(self, product_ids):
         super().__init__()
         self.detail = {"out_of_stock": product_ids}
+
+
+@extend_schema(responses={200: s.TokenPairSerializer})
+class EmailTokenObtainPairView(TokenObtainPairView):
+    """Exchange an email address and password for an access token and a refresh token."""
+
+    serializer_class = s.EmailTokenObtainPairSerializer
 
 
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
@@ -66,6 +74,10 @@ product_id_param = OpenApiParameter("product_id", int, OpenApiParameter.PATH, de
         request=s.FavoriteSerializer,
         responses={201: s.FavoriteSerializer, 200: OpenApiResponse(s.FavoriteSerializer, "Already a favourite.")},
     ),
+    slugs=extend_schema(
+        request=None,
+        responses={200: OpenApiResponse(response={"type": "array", "items": {"type": "string"}}, description="Slugs of the favourite products.")},
+    ),
     destroy=extend_schema(
         parameters=[product_id_param],
         responses={204: OpenApiResponse(description="Removed (or was not a favourite).")},
@@ -97,6 +109,11 @@ class FavoriteViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.Des
         for row in results:
             row["product"]["is_favorite"] = True
         return response
+
+    @action(detail=False, methods=["get"])
+    def slugs(self, request):
+        """Slugs of all the user's favourite products: one flat list, one query."""
+        return Response(list(Favorite.objects.filter(user=request.user).values_list("product__slug", flat=True)))
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

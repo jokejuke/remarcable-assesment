@@ -8,8 +8,8 @@ from django.db import transaction
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
-from .category_tree import clear_category_tree_cache
-from .models import Category
+from catalog.category_tree import clear_category_tree_cache
+from catalog.models import Category
 
 
 @receiver(post_save, sender=Category, dispatch_uid="catalog.category.saved")

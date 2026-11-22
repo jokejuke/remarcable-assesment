@@ -10,10 +10,10 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 from django.views.generic import DetailView, ListView
 
-from .category_tree import get_category_tree
-from .filters import ProductFilterSet
-from .models import Favorite, Order, Product
-from .services import OutOfStock, place_order
+from catalog.category_tree import get_category_tree
+from catalog.filters import ProductFilterSet
+from catalog.models import Order, Product
+from catalog.services import OutOfStock, place_order
 
 
 def login_required_action(view):
@@ -92,6 +92,7 @@ class ProductListView(ListView):
             filter=self.filterset,
             form=self.filterset.form,
             category_tree=get_category_tree(),
+            selected_category=data.get("category") or "",
             querystring=query.urlencode(),
             price_low=low,
             price_high=high,
@@ -116,25 +117,6 @@ class ProductDetailView(DetailView):
         context = super().get_context_data(**kwargs)
         context["current_url"] = self.request.get_full_path()
         return context
-
-
-@require_POST
-@login_required_action
-def favorite_add(request, product_id):
-    product = get_object_or_404(Product, pk=product_id)
-    _, created = Favorite.objects.get_or_create(user=request.user, product=product)
-    if created:
-        messages.success(request, f"Added “{product.name}” to your favourites.")
-    return redirect(safe_next(request))
-
-
-@require_POST
-@login_required_action
-def favorite_remove(request, product_id):
-    deleted, _ = Favorite.objects.filter(user=request.user, product_id=product_id).delete()
-    if deleted:
-        messages.success(request, "Removed from your favourites.")
-    return redirect(safe_next(request))
 
 
 @require_POST

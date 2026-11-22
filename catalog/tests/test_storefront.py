@@ -4,7 +4,7 @@ from django.core.cache import cache
 from django.test import TestCase
 from django.urls import reverse
 
-from .factories import build_tree, product, tags, user
+from catalog.tests.factories import build_tree, product, tags, user
 
 HOME = reverse("catalog:product-list")
 
@@ -96,11 +96,12 @@ class ProductListTests(StorefrontDataMixin, TestCase):
         self.assertNotIn("<img", html)
         self.assertIn('class="img-placeholder" role="img"', html)
 
-    def test_logged_in_cards_have_buy_and_favourite(self):
+    def test_logged_in_cards_have_buy_and_no_favourite_control(self):
         self.client.force_login(user())
         response = self.client.get(HOME)
         self.assertContains(response, 'class="buy"')
-        self.assertContains(response, "♡ Favourite")
+        self.assertNotContains(response, "Favourite")
+        self.assertNotContains(response, "♡")
 
     def test_filters_combine(self):
         response = self.client.get(HOME, {"q": "wireless", "category": self.t["audio"].pk,
@@ -205,31 +206,33 @@ class SidebarFormTests(StorefrontDataMixin, TestCase):
         self.assertEqual(html.count('type="range"'), 2)
         self.assertNotIn('class="price-filter dual"', html)  # `dual` is only added by the script
 
-    def test_category_tree_indented_by_depth(self):
-        response = self.client.get(HOME)
-        html = response.content.decode()
-        self.assertRegex(html, r'class="tree-option depth-1"[^>]*>.*?Electronics')
-        self.assertRegex(html, r'class="tree-option depth-3"[^>]*>.*?Headphones')
-        self.assertLess(html.index("> All"), html.index("Electronics</label>"))
+    def category_html(self, **params):
+        html = self.client.get(HOME, params).content.decode()
+        return html[html.index('class="category-tree"'):html.index("</fieldset>", html.index('class="category-tree"'))]
 
-    def test_tree_options_carry_parent_and_children_data(self):
-        import re
+    def test_category_tree_is_nested_details_with_all_first(self):
+        tree = self.category_html()
+        self.assertLess(tree.index("> All</label>"), tree.index("> Electronics</label>"))
+        self.assertRegex(tree, r"<details><summary><label>[^\n]*> Electronics</label></summary><ul>.*<details><summary><label>[^\n]*> Audio</label>")
+        self.assertRegex(tree, r"> Audio</label></summary><ul><li><label>[^\n]*> Headphones</label>")
+        self.assertNotIn("<script", tree)
 
-        html = self.client.get(HOME).content.decode()
+    def test_branches_are_collapsed_without_a_selection(self):
+        tree = self.category_html()
+        self.assertNotIn("<details open", tree)
+        self.assertRegex(tree, r'value="" id="id_category_all" checked')
 
-        def label(name):
-            return re.search(rf'<label class="tree-option[^>]*>(?:(?!</label>).)*?> {name}</label>', html, re.S).group(0)
+    def test_selected_category_branch_is_open_and_marked(self):
+        tree = self.category_html(category=self.t["headphones"].pk)
+        self.assertIn("<details open><summary>", tree[: tree.index("> Electronics</label>")][-120:])
+        self.assertRegex(tree, rf'value="{self.t["headphones"].pk}" id="id_category_{self.t["headphones"].pk}" checked')
+        self.assertNotIn('id="id_category_all" checked', tree)
+        # The unrelated branch stays closed.
+        self.assertRegex(tree, r"<details><summary><label>[^\n]*> Books</label>")
 
-        headphones, audio, electronics = label("Headphones"), label("Audio"), label("Electronics")
-        self.assertIn(f'data-id="{self.t["headphones"].pk}"', headphones)
-        self.assertIn(f'data-parent="{self.t["audio"].pk}"', headphones)
-        self.assertNotIn("data-has-children", headphones)
-        self.assertIn(f'data-parent="{self.t["electronics"].pk}"', audio)
-        self.assertIn('data-has-children="true"', audio)
-        self.assertIn('data-parent=""', electronics)
-        self.assertIn('data-has-children="true"', electronics)
-        all_option = re.search(r'<label class="tree-option depth-0[^>]*>', html).group(0)
-        self.assertNotIn("data-id", all_option)
+    def test_parent_category_is_selectable(self):
+        tree = self.category_html(category=self.t["electronics"].pk)
+        self.assertRegex(tree, rf'value="{self.t["electronics"].pk}" id="id_category_{self.t["electronics"].pk}" checked')
 
     def test_slider_bounds_match_cheapest_and_most_expensive(self):
         response = self.client.get(HOME)
@@ -338,14 +341,43 @@ class ProductPageTests(StorefrontDataMixin, TestCase):
             self.assertContains(response, "Out of stock")
             self.assertNotContains(response, "buy")
 
-    def test_logged_in_page_has_favourite_and_buy(self):
+    def test_logged_in_page_has_async_favourite_control_and_buy(self):
         self.client.force_login(user())
         response = self.client.get(self.url(self.studio))
-        self.assertContains(response, "♡ Favourite")
+        self.assertContains(response, f'id="fav-toggle" data-slug="studio-headphones" data-product-id="{self.studio.pk}"')
+        self.assertContains(response, "disabled>♡ Favourite")  # state comes from the slugs request, not the server
         self.assertContains(response, 'class="buy"')
 
-    def test_buy_and_favourite_return_to_the_page(self):
-        from catalog.models import Favorite, Order
+    def test_favourites_script_is_defined_before_the_page_script_uses_it(self):
+        self.client.force_login(user())
+        html = self.client.get(self.url(self.studio)).content.decode()
+        self.assertIn('id="nav-favorites"', html)
+        self.assertIn('/api/favorites/slugs/', html)
+        self.assertLess(html.index("window.catalogFavorites ="), html.index("const favs = window.catalogFavorites"))
+
+    def test_anonymous_pages_do_not_request_favourite_slugs(self):
+        html = self.client.get(self.url(self.studio)).content.decode()
+        self.assertNotIn("/api/favorites/slugs/", html)
+        self.assertNotIn("nav-favorites", html)
+
+    def test_page_state_does_not_come_from_the_server(self):
+        from catalog.models import Favorite
+
+        shopper = user()
+        Favorite.objects.create(user=shopper, product=self.studio)
+        self.client.force_login(shopper)
+        response = self.client.get(self.url(self.studio))
+        self.assertNotContains(response, "♥ Favourite")
+        self.assertNotContains(response, "fav on")
+
+    def test_anonymous_page_has_login_link_instead_of_favourite_control(self):
+        response = self.client.get(self.url(self.studio))
+        self.assertNotContains(response, "fav-toggle")
+        self.assertContains(response, f'href="{reverse("login")}?next=/products/studio-headphones/"')
+        self.assertContains(response, "Log in to favourite")
+
+    def test_buy_returns_to_the_page(self):
+        from catalog.models import Order
 
         self.client.force_login(user())
         page = self.url(self.studio)
@@ -353,10 +385,6 @@ class ProductPageTests(StorefrontDataMixin, TestCase):
         self.assertRedirects(response, page)
         self.assertContains(response, "Order #")
         self.assertEqual(Order.objects.count(), 1)
-        response = self.client.post(reverse("catalog:favorite-add", args=[self.studio.pk]), {"next": page}, follow=True)
-        self.assertRedirects(response, page)
-        self.assertContains(response, "♥ Favourite")
-        self.assertTrue(Favorite.objects.exists())
 
     def test_page_shows_picture_or_placeholder(self):
         from catalog.models import Product

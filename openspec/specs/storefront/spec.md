@@ -44,31 +44,31 @@ The header SHALL contain a search input whose value is submitted together with t
 - **THEN** results match "wireless" within "Audio"
 
 ### Requirement: Nested category tree in the sidebar
-The sidebar SHALL show categories as a tree indented by level, with an "All" option at the top. The selected category SHALL be marked. Categories that have subcategories SHALL be collapsed by default and SHALL have a separate expand control; clicking a category's name SHALL select it without expanding or collapsing it. Without JavaScript the whole tree SHALL be shown expanded.
+The sidebar SHALL show categories as a tree indented by level, with an "All" option at the top. The selected category SHALL be marked. Categories that have subcategories SHALL be nested native disclosure (`<details>`) elements, collapsed by default, with the branch containing the selected category open. Selecting a category SHALL NOT depend on JavaScript.
 
 #### Scenario: Tree rendering
 - **WHEN** the sidebar renders categories Electronics > Audio > Headphones
-- **THEN** "Headphones" is indented two levels below "Electronics"
+- **THEN** "Headphones" is nested two levels below "Electronics"
 
 #### Scenario: Collapsed by default
 - **WHEN** the home page loads with no category selected
 - **THEN** only top-level categories and "All" are visible
 
 #### Scenario: Expand control
-- **WHEN** a user clicks the expand control next to "Electronics"
+- **WHEN** a user opens the "Electronics" disclosure
 - **THEN** its direct subcategories become visible and no category is selected
 
 #### Scenario: Select a parent category
-- **WHEN** a user clicks the name "Electronics"
-- **THEN** "Electronics" is selected and its subcategories stay as they were
+- **WHEN** a user selects "Electronics"
+- **THEN** "Electronics" is selected and products from all its product-holding subcategories are listed
 
 #### Scenario: Selected category is revealed
 - **WHEN** the page loads with "Headphones" selected
-- **THEN** "Electronics" and "Audio" are expanded so "Headphones" is visible and marked
+- **THEN** "Electronics" and "Audio" are open so "Headphones" is visible and marked
 
 #### Scenario: Without JavaScript
 - **WHEN** the page is shown with JavaScript disabled
-- **THEN** every category is visible
+- **THEN** every branch can still be opened and a category selected
 
 ### Requirement: Price sliders
 The price filter SHALL be a single track with a minimum and a maximum handle, ranging from the lowest to the highest product price and showing both current values. The minimum handle SHALL NOT pass the maximum handle. Without JavaScript it SHALL fall back to two separate sliders, and filtering SHALL still work.
@@ -84,17 +84,6 @@ The price filter SHALL be a single track with a minimum and a maximum handle, ra
 #### Scenario: Without JavaScript
 - **WHEN** the page is shown with JavaScript disabled
 - **THEN** two separate minimum and maximum sliders are shown and Apply filters by them
-
-### Requirement: Favourite toggle on cards
-A logged-in user SHALL be able to add or remove a product from favourites from its card. The page SHALL then return to the same filtered view.
-
-#### Scenario: Add favourite
-- **WHEN** a logged-in shopper clicks the favourite control on an unfavourited product
-- **THEN** the product becomes a favourite and the same filtered page is shown with the control marked
-
-#### Scenario: Anonymous click
-- **WHEN** an anonymous visitor tries to favourite a product
-- **THEN** they are redirected to the login page and returned afterwards
 
 ### Requirement: One-click Buy
 A logged-in user SHALL be able to buy one unit of an in-stock product from its card or its product page. The user SHALL see a success message or, if stock ran out, an out-of-stock message. An anonymous visitor who clicks Buy SHALL be sent to the login page and, after logging in or signing up, returned to the page they came from without any order being placed.
@@ -119,7 +108,7 @@ A logged-in user SHALL have a page listing their favourite products, including o
 - **THEN** all three are listed and the out-of-stock one is marked
 
 ### Requirement: My orders page
-A logged-in user SHALL have a page listing their own orders, newest first, with items, quantities, prices paid and totals.
+A logged-in user SHALL have a page listing their own orders, newest first, with items, quantities, prices paid and totals. Each order's time SHALL be shown in the viewer's local time.
 
 #### Scenario: Order history
 - **WHEN** a shopper who placed two orders opens My orders
@@ -140,11 +129,27 @@ Any redirect target taken from request parameters SHALL be limited to this site.
 - **THEN** the user is redirected to the home page instead
 
 ### Requirement: Product page
-Each product SHALL have a page at `/products/<slug>/` showing its picture, name, full category path, tags, price, stock, full description, Buy (when in stock) and, for logged-in users, the favourite control. The page SHALL be accessible without logging in and SHALL show out-of-stock products too. Unknown slugs SHALL return 404.
+Each product SHALL have a page at `/products/<slug>/` showing its picture, name, full category path, tags, price, stock, full description and Buy (when in stock). For logged-in users it SHALL also show a favourite control whose state is filled in by a separate asynchronous request for the user's favourite slugs, and which adds or removes the favourite without reloading the page. The page SHALL be accessible without logging in and SHALL show out-of-stock products too. Unknown slugs SHALL return 404.
 
 #### Scenario: Open from a card
 - **WHEN** a visitor clicks Details on the card of "Aurora ANC Headphones"
 - **THEN** they see `/products/aurora-anc-headphones/` with that product's full description
+
+#### Scenario: Favourite state from slugs
+- **WHEN** a shopper whose favourite slugs include `aurora-anc-headphones` opens that page
+- **THEN** the favourite control is shown as on once the slugs request completes
+
+#### Scenario: Toggle without reload
+- **WHEN** a shopper clicks the favourite control on a product page
+- **THEN** the favourite is added or removed through an asynchronous request and the control and the navigation count update without a reload
+
+#### Scenario: Anonymous favourite
+- **WHEN** an anonymous visitor opens a product page
+- **THEN** no favourite control is shown that works without login; a "Log in to favourite" link returns them to the page afterwards
+
+#### Scenario: Actions return to the product page
+- **WHEN** a logged-in shopper clicks Buy on a product page
+- **THEN** the product page is shown again with the result message
 
 #### Scenario: Out-of-stock product page
 - **WHEN** a visitor opens the page of a product with stock 0
@@ -153,10 +158,6 @@ Each product SHALL have a page at `/products/<slug>/` showing its picture, name,
 #### Scenario: Unknown slug
 - **WHEN** a visitor opens `/products/no-such-product/`
 - **THEN** the response is 404
-
-#### Scenario: Actions return to the product page
-- **WHEN** a logged-in shopper clicks Buy or the favourite control on a product page
-- **THEN** the product page is shown again with the result message
 
 ### Requirement: Product pictures
 Cards and product pages SHALL show the product's picture. When a product has no picture, or its picture fails to load, a neutral placeholder of the same size SHALL be shown instead. Every picture SHALL have the product name as its text alternative.
@@ -220,3 +221,29 @@ The storefront listing SHALL show 10 products per page.
 #### Scenario: 25 matching products
 - **WHEN** 25 products match the filters
 - **THEN** the listing has 3 pages with 10, 10 and 5 products
+
+### Requirement: Favourites count in navigation
+For a logged-in user, the navigation link SHALL read "My favourites (N)" where N is the number of the user's favourites, loaded by a separate asynchronous request after the page renders. N SHALL update without a reload when the user adds or removes a favourite on a product page. Anonymous visitors SHALL see no such link.
+
+#### Scenario: Badge shown
+- **WHEN** a shopper with two favourites opens any page
+- **THEN** the navigation shows "My favourites (2)"
+
+#### Scenario: Badge follows toggle
+- **WHEN** that shopper removes a favourite on a product page
+- **THEN** the navigation shows "My favourites (1)" without a page reload
+
+#### Scenario: No favourites
+- **WHEN** a shopper with no favourites opens a page
+- **THEN** the navigation shows "My favourites (0)"
+
+### Requirement: Timestamps shown in local time
+Timestamps on storefront pages SHALL be converted to the viewer's local time zone in the browser. The server SHALL render each as a `<time>` element carrying its ISO 8601 UTC value, with UTC text inside as the fallback when JavaScript is unavailable.
+
+#### Scenario: Order time in local time
+- **WHEN** a shopper whose browser is in UTC+2 opens My orders for an order placed at 10:00 UTC
+- **THEN** the order shows 12:00
+
+#### Scenario: Without JavaScript
+- **WHEN** My orders is shown with JavaScript disabled
+- **THEN** the order time shows in UTC, labelled UTC

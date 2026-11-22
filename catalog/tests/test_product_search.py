@@ -8,8 +8,7 @@ from django.test.utils import CaptureQueriesContext
 
 from catalog.filters import ProductFilterSet
 from catalog.models import Product
-
-from .factories import build_tree, product, tags
+from catalog.tests.factories import build_tree, container, product, tags
 
 
 class SearchDataMixin:
@@ -59,6 +58,19 @@ class ProductQuerySetTests(SearchDataMixin, TestCase):
     def test_top_level_category_includes_descendants(self):
         result = self.names(Product.objects.in_category(self.t["electronics"].pk))
         self.assertEqual(result, {"Studio Headphones", "Budget Earbuds", "Wired Headset", "Party Speaker", "Laptop Pro", "Sold Out Buds"})
+
+    def test_parent_filter_queries_only_product_holding_ids(self):
+        t = self.t
+        with CaptureQueriesContext(connection) as ctx:
+            list(Product.objects.in_category(t["electronics"].pk))
+        sql = ctx.captured_queries[-1]["sql"]
+        ids = {int(i) for i in sql.split('"category_id" IN (')[1].split(")")[0].split(",")}
+        self.assertEqual(ids, {t["headphones"].pk, t["speakers"].pk, t["computers"].pk})
+
+    def test_container_without_product_categories_returns_nothing(self):
+        empty = container("Empty")
+        cache.clear()
+        self.assertEqual(list(Product.objects.in_category(empty.pk)), [])
 
     def test_leaf_category(self):
         result = self.names(Product.objects.in_category(self.t["speakers"].pk))

@@ -18,10 +18,64 @@
         {% else %}
           <div class="stock out">Out of stock</div>
         {% endif %}
-        <div class="actions">{% include "catalog/_product_actions.html" %}</div>
+        <div class="actions">
+          {% if user.is_authenticated %}
+            <button type="button" class="fav" id="fav-toggle" data-slug="{{ product.slug }}" data-product-id="{{ product.pk }}" aria-pressed="false" disabled>♡ Favourite</button>
+          {% else %}
+            <a class="button secondary fav-login" href="{% url 'login' %}?next={{ current_url|urlencode }}">Log in to favourite</a>
+          {% endif %}
+          {% include "catalog/_product_actions.html" %}
+        </div>
+        <p class="muted" id="fav-message" role="status" hidden></p>
         {% if product.description %}<p class="full-desc">{{ product.description|linebreaksbr }}</p>{% endif %}
       </div>
     </article>
   </main>
 </div>
+{% if user.is_authenticated %}
+<script>
+  // The heart is filled in from the favourite slugs (requested once by the base template) and toggles
+  // through the JSON API without reloading the page.
+  (function () {
+    const button = document.getElementById("fav-toggle");
+    const message = document.getElementById("fav-message");
+    const favs = window.catalogFavorites;
+    if (!button || !favs) return;
+    let on = false;
+    function paint() {
+      button.classList.toggle("on", on);
+      button.setAttribute("aria-pressed", on ? "true" : "false");
+      button.textContent = (on ? "\u2665" : "\u2661") + " Favourite";
+      button.title = on ? "Remove from favourites" : "Add to favourites";
+    }
+    function say(text) { message.textContent = text; message.hidden = !text; }
+    favs.ready.then((loaded) => {
+      if (!loaded) { say("Could not load your favourites."); return; }
+      on = favs.slugs.has(button.dataset.slug);
+      paint();
+      button.disabled = false;
+    });
+    button.addEventListener("click", async () => {
+      const wasOn = on;
+      on = !wasOn; paint(); say(""); button.disabled = true;
+      try {
+        const id = button.dataset.productId;
+        const response = await fetch(wasOn ? "/api/favorites/" + id + "/" : "/api/favorites/", {
+          method: wasOn ? "DELETE" : "POST",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json", "X-CSRFToken": favs.csrfToken() },
+          body: wasOn ? undefined : JSON.stringify({ product: Number(id) }),
+        });
+        if (!response.ok) throw new Error("HTTP " + response.status);
+        favs.set(button.dataset.slug, on);
+      } catch (error) {
+        on = wasOn; paint();
+        say("Could not update your favourites. Please try again.");
+      } finally {
+        button.disabled = false;
+      }
+    });
+  })();
+</script>
+{% endif %}
 {% endblock %}

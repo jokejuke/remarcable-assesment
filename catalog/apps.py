@@ -6,4 +6,4 @@ class CatalogConfig(AppConfig):
     name = "catalog"
 
     def ready(self):
-        from . import signals  # noqa: F401  (registers the receivers)
+        from catalog import signals  # noqa: F401  (registers the receivers)

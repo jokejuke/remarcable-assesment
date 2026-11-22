@@ -1,0 +1,86 @@
+[
+  {
+    "model": "catalog.category",
+    "pk": 1,
+    "fields": {
+      "created_at": 1795364221,
+      "updated_at": 1795364221,
+      "name": "Electronics",
+      "parent": null,
+      "has_products": false,
+      "has_subcategories": true
+    }
+  },
+  {
+    "model": "catalog.category",
+    "pk": 2,
+    "fields": {
+      "created_at": 1795364221,
+      "updated_at": 1795364221,
+      "name": "Audio",
+      "parent": 1,
+      "has_products": false,
+      "has_subcategories": true
+    }
+  },
+  {
+    "model": "catalog.category",
+    "pk": 3,
+    "fields": {
+      "created_at": 1795364221,
+      "updated_at": 1795364221,
+      "name": "Headphones",
+      "parent": 2,
+      "has_products": true,
+      "has_subcategories": false
+    }
+  },
+  {
+    "model": "catalog.category",
+    "pk": 4,
+    "fields": {
+      "created_at": 1795364221,
+      "updated_at": 1795364221,
+      "name": "Speakers",
+      "parent": 2,
+      "has_products": true,
+      "has_subcategories": false
+    }
+  },
+  {
+    "model": "catalog.category",
+    "pk": 5,
+    "fields": {
+      "created_at": 1795364221,
+      "updated_at": 1795373136,
+      "name": "Computers & Phones",
+      "parent": 1,
+      "has_products": true,
+      "has_subcategories": false
+    }
+  },
+  {
+    "model": "catalog.category",
+    "pk": 9,
+    "fields": {
+      "created_at": 1795364221,
+      "updated_at": 1795373136,
+      "name": "Home & Outdoors",
+      "parent": null,
+      "has_products": true,
+      "has_subcategories": false
+    }
+  },
+  {
+    "model": "catalog.category",
+    "pk": 12,
+    "fields": {
+      "created_at": 1795364221,
+      "updated_at": 1795373136,
+      "name": "Books",
+      "parent": null,
+      "has_products": true,
+      "has_subcategories": false
+    }
+  }
+]

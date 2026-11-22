@@ -8,7 +8,7 @@ from django.core.validators import URLValidator
 from django.db import models
 from django.utils.text import slugify
 
-from .querysets import ProductQuerySet
+from catalog.querysets import ProductQuerySet
 
 
 def unix_now():
@@ -87,7 +87,7 @@ class Category(TimestampedModel):
 
     @property
     def path(self):
-        from .category_tree import get_category_tree
+        from catalog.category_tree import get_category_tree
 
         return get_category_tree().path(self.pk) if self.pk else self.name
 

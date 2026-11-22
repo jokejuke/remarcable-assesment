@@ -13,8 +13,7 @@ from django.urls import reverse
 
 from catalog.models import Order, OrderItem, Product
 from catalog.services import OutOfStock, place_order
-
-from .factories import build_tree, product, user
+from catalog.tests.factories import build_tree, product, user
 
 
 class OrderModelTests(TestCase):
@@ -187,6 +186,15 @@ class StorefrontCheckoutTests(TestCase):
         self.assertEqual(list(response.context["orders"]), [second, first])
         self.assertContains(response, "$98.00")
         self.assertContains(response, "$59.00")
+
+    def test_my_orders_time_is_a_time_element_with_utc_fallback(self):
+        order = place_order(self.u, [(self.p.pk, 1)])
+        Order.objects.filter(pk=order.pk).update(created_at=1700000000)
+        response = self.client.get(reverse("catalog:my-orders"))
+        self.assertContains(
+            response, '<time class="local-time" datetime="2023-11-14T22:13:20Z">2023-11-14 22:13 UTC</time>', html=False
+        )
+        self.assertContains(response, "Intl.DateTimeFormat")
 
     def test_my_orders_query_count_fixed(self):
         def count(n):

@@ -38,12 +38,11 @@
     aside fieldset { border:1px solid var(--line); border-radius:8px; margin:0 0 12px; padding:8px 12px 10px; background:var(--card); }
     aside legend { font-weight:600; padding:0 4px; }
     aside label { display:block; }
-    .tree-option { white-space:nowrap; display:flex !important; align-items:center; gap:4px; }
-    .tree-toggle { width:22px; height:22px; padding:0; border:none; background:none; color:var(--muted); font-size:13px; line-height:1; border-radius:4px; flex:none; }
-    .tree-toggle:hover { background:#eef1f4; }
-    .tree-toggle[aria-expanded="true"] { transform:rotate(90deg); }
-    .tree-spacer { display:inline-block; width:22px; flex:none; }
-    .depth-2 { padding-left:1.2em; } .depth-3 { padding-left:2.4em; } .depth-4 { padding-left:3.6em; } .depth-5 { padding-left:4.8em; }
+    .category-tree ul { list-style:none; margin:0; padding:0 0 0 1.1em; }
+    .category-tree > ul { padding-left:0; }
+    .category-tree summary { cursor:pointer; list-style-position:inside; }
+    .category-tree summary label { display:inline-block; }
+    .category-tree li > label { padding-left:1.1em; }
     aside ul { list-style:none; margin:0; padding:0; }
     .range-row { display:flex; justify-content:space-between; font-size:13px; color:var(--muted); }
     input[type=range] { width:100%; }
@@ -95,6 +94,7 @@
     .product-page .full-desc { white-space:normal; }
     @media (max-width: 760px) { .product-page { grid-template-columns:1fr; } }
     .fav { background:#fff; color:#c0306b; border-color:#c0306b; }
+    .fav:disabled { opacity:.6; cursor:wait; }
     .fav.on { background:#c0306b; color:#fff; }
     .pagination { margin:16px 0; display:flex; gap:10px; align-items:center; }
     .muted { color:var(--muted); }
@@ -109,11 +109,11 @@
     {% block header_search %}<span class="search"></span>{% endblock %}
     <nav>
       {% if user.is_authenticated %}
-        <a href="{% url 'catalog:my-favorites' %}">My favourites</a>
+        <a href="{% url 'catalog:my-favorites' %}" id="nav-favorites">My favourites</a>
         <a href="{% url 'catalog:my-orders' %}">My orders</a>
         {% if user.is_staff %}<a href="{% url 'admin:index' %}">Admin</a>{% endif %}
         <a href="{% url 'swagger-ui' %}">API</a>
-        <span class="username">Signed in as <strong>{{ user.username }}</strong></span>
+        <span class="username">Signed in as <strong>{{ user.email|default:user.username }}</strong></span>
         <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button type="submit" class="secondary">Log out</button></form>
       {% else %}
         <a href="{% url 'swagger-ui' %}">API</a>
@@ -121,6 +121,36 @@
       {% endif %}
     </nav>
   </header>
+  {% if user.is_authenticated %}
+  <script>
+    // One request per page for the user's favourite slugs. The nav count and the product page's heart
+    // both read this set; toggles on the product page update it through `catalogFavorites.set`.
+    window.catalogFavorites = (function () {
+      const link = document.getElementById("nav-favorites");
+      const favs = {
+        slugs: new Set(),
+        csrfToken() { const input = document.querySelector("input[name=csrfmiddlewaretoken]"); return input ? input.value : ""; },
+        render() { if (link) link.textContent = "My favourites (" + favs.slugs.size + ")"; },
+        set(slug, on) { if (on) favs.slugs.add(slug); else favs.slugs.delete(slug); favs.render(); },
+      };
+      favs.ready = fetch("{% url 'favorite-slugs' %}", { credentials: "same-origin", headers: { Accept: "application/json" } })
+        .then((response) => { if (!response.ok) throw new Error("HTTP " + response.status); return response.json(); })
+        .then((list) => { favs.slugs = new Set(list); favs.render(); return true; })
+        .catch(() => false);
+      return favs;
+    })();
+  </script>
+  {% endif %}
   {% block body %}{% endblock %}
+  <script>
+    // Timestamps are rendered as UTC text inside <time datetime="…Z">; show them in the viewer's time zone.
+    (function () {
+      const format = new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" });
+      document.querySelectorAll("time.local-time[datetime]").forEach((element) => {
+        const instant = new Date(element.getAttribute("datetime"));
+        if (!isNaN(instant)) element.textContent = format.format(instant);
+      });
+    })();
+  </script>
 </body>
 </html>

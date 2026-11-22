@@ -8,7 +8,7 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.shortcuts import redirect, render
 
-from .views import safe_next
+from catalog.views import safe_next
 
 User = get_user_model()
 

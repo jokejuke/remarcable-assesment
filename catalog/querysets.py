@@ -17,10 +17,10 @@ class ProductQuerySet(models.QuerySet):
         return self.filter(query)
 
     def in_category(self, category_id):
-        """Products in the category or any category below it (one `IN`, no joins)."""
-        from .category_tree import get_category_tree
+        """Products in the category or any category below it (one `IN` over product-holding ids, no joins)."""
+        from catalog.category_tree import get_category_tree
 
-        return self.filter(category_id__in=get_category_tree().descendant_ids(category_id))
+        return self.filter(category_id__in=get_category_tree().product_descendant_ids(category_id))
 
     def with_tags(self, tag_ids, match="all"):
         """Products with ALL (default) or ANY of the tags.

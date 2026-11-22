@@ -10,8 +10,7 @@ from django.urls import reverse
 
 from catalog.models import Product, Tag
 from catalog.templatetags.money import format_cents, format_unix
-
-from .factories import build_tree, product, tags
+from catalog.tests.factories import build_tree, product, tags
 
 
 class ProductAndTagModelTests(TestCase):
@@ -124,6 +123,15 @@ class DisplayHelperTests(SimpleTestCase):
         self.assertEqual(format_cents(5), "$0.05")
         self.assertEqual(format_cents(123456789), "$1,234,567.89")
         self.assertEqual(format_cents(None), "")
+
+    def test_unixtime_filter_emits_time_element_with_utc_fallback(self):
+        from django.template import Context, Template
+
+        html = Template("{% load money %}{{ t|unixtime }}").render(Context({"t": 1700000000}))
+        self.assertEqual(
+            html, '<time class="local-time" datetime="2023-11-14T22:13:20Z">2023-11-14 22:13 UTC</time>'
+        )
+        self.assertEqual(Template("{% load money %}{{ t|unixtime }}").render(Context({"t": None})), "")
 
     def test_unixtime(self):
         self.assertEqual(format_unix(0), "1970-01-01 00:00 UTC")

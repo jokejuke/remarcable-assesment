@@ -11,8 +11,7 @@ from django.test import Client, SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 
 from catalog.models import Category, Favorite, Order
-
-from .factories import build_tree, product, user
+from catalog.tests.factories import build_tree, product, user
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 ORIGIN = "https://app.example.com"
@@ -64,10 +63,10 @@ class CsrfTests(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertFalse(Order.objects.exists())
 
-    def test_favorite_without_token_403(self):
+    def test_api_favorite_write_without_token_403(self):
         self.client.force_login(self.shopper)
-        for name in ("catalog:favorite-add", "catalog:favorite-remove"):
-            self.assertEqual(self.client.post(reverse(name, args=[self.p.pk])).status_code, 403)
+        self.assertEqual(self.client.post("/api/favorites/", {"product": self.p.pk}).status_code, 403)
+        self.assertEqual(self.client.delete(f"/api/favorites/{self.p.pk}/").status_code, 403)
         self.assertFalse(Favorite.objects.exists())
 
     def test_login_without_token_403(self):

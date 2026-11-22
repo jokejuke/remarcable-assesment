@@ -12,8 +12,7 @@ from django.urls import reverse
 from catalog import category_tree
 from catalog.category_tree import get_category_tree
 from catalog.models import Category
-
-from .factories import build_tree, container, leaf, product
+from catalog.tests.factories import build_tree, container, leaf, product
 
 
 class CategoryModelTests(TestCase):
@@ -175,6 +174,22 @@ class CategoryTreeTests(TestCase):
         )
         self.assertEqual(tree.descendant_ids(t["headphones"].pk), {t["headphones"].pk})
         self.assertEqual(tree.descendant_ids(999999), set())
+
+    def test_product_descendants_only_hold_products(self):
+        tree = get_category_tree()
+        t = self.t
+        self.assertEqual(
+            tree.product_descendant_ids(t["electronics"].pk),
+            {t["headphones"].pk, t["speakers"].pk, t["computers"].pk},
+        )
+        self.assertEqual(tree.product_descendant_ids(t["audio"].pk), {t["headphones"].pk, t["speakers"].pk})
+        self.assertEqual(tree.product_descendant_ids(t["headphones"].pk), {t["headphones"].pk})
+        self.assertEqual(tree.product_descendant_ids(999999), set())
+
+    def test_empty_container_has_no_product_descendants(self):
+        empty = container("Empty")
+        cache.clear()
+        self.assertEqual(get_category_tree().product_descendant_ids(empty.pk), set())
 
     def test_depth_first_order(self):
         nodes = get_category_tree().nodes
