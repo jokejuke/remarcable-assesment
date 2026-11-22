@@ -6,6 +6,7 @@ Every deployment-specific value is read from environment variables (see
 """
 
 import os
+import string
 from datetime import timedelta
 from pathlib import Path
 
@@ -154,9 +155,21 @@ CACHES = {
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
-    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator", "OPTIONS": {"min_length": 8}},
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
+    {
+        "NAME": "django_password_validators.password_character_requirements.password_validation.PasswordCharacterValidator",
+        # The package also demands letters and lower case by default; only digit, upper case and symbol are required.
+        "OPTIONS": {
+            "min_length_digit": 1,
+            "min_length_upper": 1,
+            "min_length_special": 1,
+            "min_length_alpha": 0,
+            "min_length_lower": 0,
+            "special_characters": string.punctuation,
+        },
+    },
 ]
 
 LOGIN_URL = "login"

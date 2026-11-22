@@ -192,12 +192,12 @@ class CategoryTreeTests(TestCase):
         self.assertEqual(get_category_tree().product_descendant_ids(empty.pk), set())
 
     def test_depth_first_order(self):
-        nodes = get_category_tree().nodes
         self.assertEqual(
-            [(n.name, n.depth) for n in nodes],
+            [get_category_tree().path(n.id) for n in get_category_tree().nodes],
             [
-                ("Books", 1), ("Fiction", 2),
-                ("Electronics", 1), ("Audio", 2), ("Headphones", 3), ("Speakers", 3), ("Computers", 2),
+                "Books", "Books > Fiction",
+                "Electronics", "Electronics > Audio", "Electronics > Audio > Headphones",
+                "Electronics > Audio > Speakers", "Electronics > Computers",
             ],
         )
 
@@ -236,7 +236,7 @@ class CategoryCacheInvalidationTests(TestCase):
     def test_delete_visible_after_commit(self):
         with self.captureOnCommitCallbacks(execute=True):
             self.t["fiction"].delete()
-        self.assertNotIn(self.t["fiction"].pk, get_category_tree())
+        self.assertEqual(get_category_tree().path(self.t["fiction"].pk), "")
 
     def test_rolled_back_save_keeps_cache(self):
         with self.captureOnCommitCallbacks(execute=False) as callbacks:

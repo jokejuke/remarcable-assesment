@@ -10,7 +10,7 @@ from catalog.tests.factories import build_tree, product, user
 User = get_user_model()
 SIGNUP = reverse("signup")
 HOME = reverse("catalog:product-list")
-PASSWORD = "a-good-pass-phrase-77"
+PASSWORD = "A-good-pass-phrase-77"
 
 
 def signup_data(email="new@example.com", password=PASSWORD, repeat=None, **extra):
@@ -78,6 +78,28 @@ class SignUpTests(TestCase):
         self.assertIn("password1", response.context["form"].errors)
         self.assertContains(response, "entirely numeric")
         self.assertFalse(User.objects.exists())
+
+    def test_password_rules(self):
+        for password, message in (
+            ("Ab1-xyz", "at least 8 characters"),
+            ("Valid-pass-x", "at least 1 digit"),
+            ("valid-pass-1", "at least 1 upper case letter"),
+            ("ValidPass123", "at least 1 special character"),
+        ):
+            with self.subTest(password=password):
+                response = self.client.post(SIGNUP, signup_data(password=password))
+                self.assertIn("password1", response.context["form"].errors)
+                self.assertContains(response, message)
+                self.assertFalse(User.objects.exists())
+
+    def test_several_rules_fail_at_once(self):
+        response = self.client.post(SIGNUP, signup_data(password="abcdefgh"))
+        for message in ("at least 1 digit", "at least 1 upper case letter", "at least 1 special character"):
+            self.assertContains(response, message)
+
+    def test_strong_password_is_accepted(self):
+        self.client.post(SIGNUP, signup_data(password="Valid-pass-1"))
+        self.assertTrue(User.objects.filter(username="new@example.com").exists())
 
     def test_password_too_similar_to_email(self):
         response = self.client.post(SIGNUP, signup_data(email="johnsmith@example.com", password="johnsmith@example"))
@@ -152,6 +174,11 @@ class EmailLoginTests(TestCase):
         response = self.login("Shopper@Example.com", next=HOME)
         self.assertRedirects(response, HOME)
         self.assertContains(self.client.get(HOME), "Signed in as <strong>shopper@example.com</strong>", html=False)
+
+    def test_old_weak_password_still_logs_in(self):
+        user("old@example.com", "12345678", email="old@example.com")
+        self.login("old@example.com", "12345678")
+        self.assertIn("_auth_user_id", self.client.session)
 
     def test_wrong_password_shows_generic_error(self):
         response = self.login("shopper@example.com", "wrong-password-1")

@@ -96,13 +96,13 @@ Open http://127.0.0.1:8000/ for the storefront and http://127.0.0.1:8000/admin/ 
 Fixtures live in `catalog/fixtures/`, one JSON file per model. Load them **in this order** (categories, tags, products, then users), because products refer to categories and tags, and the users fixture refers to products through the first shopper's favourites:
 
 1. `catalog_category.json`, `catalog_tag.json`, `catalog_product.json`: **7 categories** in a three-level tree (Books; Electronics > Audio > Headphones and Speakers; Electronics > Computers & Phones; Home & Outdoors), 12 tags and **25 products** (2 of them out of stock), spread over three storefront pages. Every product has a picture link. They were exported with `dumpdata catalog.category catalog.tag catalog.product --indent 2` and split by model, and contain no user accounts.
-2. `demo_users.json`: three accounts and the first shopper's favourites. Passwords are stored only as hashes.
+2. `demo_users.json`: three accounts and the first shopper's favourites. Passwords are stored only as hashes. With `DEBUG` on, the login page also lists these accounts.
 
 | User (email) | Password | Access |
 |---|---|---|
-| `admin@example.com` | `demo-admin-123` | Superuser: the admin at `/admin/` and the storefront |
-| `shopper@example.com` | `demo-shopper-123` | Storefront and API only (no admin), with 4 favourites |
-| `shopper2@example.com` | `demo-shopper2-123` | Storefront and API only (no admin), with no favourites |
+| `admin@example.com` | `Demo-admin-123!` | Superuser: the admin at `/admin/` and the storefront |
+| `shopper@example.com` | `Demo-shopper-123!` | Storefront and API only (no admin), with 4 favourites |
+| `shopper2@example.com` | `Demo-shopper2-123!` | Storefront and API only (no admin), with no favourites |
 
 **Pictures need internet access.** Each `image_url` points at a freely licensed photo on [Wikimedia Commons](https://commons.wikimedia.org/) (960px thumbnails on `upload.wikimedia.org`). Offline, or if a link breaks, cards and product pages show the placeholder. Only the links are stored; no image files are downloaded or kept in the repository.
 
@@ -132,7 +132,7 @@ uv run --env-file .env python manage.py loaddata catalog_category catalog_tag ca
 
 ### Accounts
 
-- **Sign-up** (`/accounts/signup/`) takes an email address and a password twice. The password must pass Django's validators (at least 8 characters, not too common, not all digits, not too similar to the email). There is no email verification and no password reset.
+- **Sign-up** (`/accounts/signup/`) takes an email address and a password twice. The password must pass Django's validators (at least 8 characters including 1 digit, 1 uppercase letter and 1 symbol; not too common, not all digits, not too similar to the email). There is no email verification and no password reset.
 - **The email is the username**, stored in lower case. A second sign-up with the same address in any letter case is rejected.
 - **Login** (`/accounts/login/`) labels the first field "Email" and matches it ignoring letter case. The API token endpoint (`/api/auth/token/`) also takes the email (`email`, any letter case) and a password; it no longer accepts a `username` field. The header shows "Signed in as" your email. Only the Django admin login keeps its own "Username" field, and the demo admin's username is already `admin@example.com`.
 - Both pages keep the `next` target, so a visitor who clicked Buy lands back on the same page. Only targets on this site are accepted.
@@ -206,7 +206,7 @@ With curl (the demo shopper, server on port 8000):
 # 1. Get a token pair
 curl -s -X POST http://127.0.0.1:8000/api/auth/token/ \
   -H "Content-Type: application/json" \
-  -d '{"email": "shopper@example.com", "password": "demo-shopper-123"}'
+  -d '{"email": "shopper@example.com", "password": "Demo-shopper-123!"}'
 
 # 2. Call the API with the access token
 ACCESS=<access token from step 1>

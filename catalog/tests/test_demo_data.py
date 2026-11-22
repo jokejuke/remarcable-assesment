@@ -1,10 +1,14 @@
 """Spec: demo-data (fixtures)."""
 
+from pathlib import Path
+
 from django.contrib.auth import get_user_model
+from django.contrib.auth.password_validation import validate_password
 from django.core.cache import cache
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
+from catalog.accounts import DEMO_ACCOUNTS
 from catalog.category_tree import get_category_tree
 from catalog.models import Category, Favorite, Product, Tag
 
@@ -23,7 +27,7 @@ class CatalogFixtureOnlyTests(TestCase):
     def test_three_level_tree_with_products(self):
         cache.clear()
         tree = get_category_tree()
-        level3 = [n.id for n in tree.nodes if n.depth == 3]
+        level3 = [n.id for n in tree.nodes if tree.path(n.id).count(" > ") == 2]
         self.assertTrue(Product.objects.filter(category_id__in=level3).exists())
 
     def test_out_of_stock_sample_hidden_by_default(self):
@@ -104,7 +108,7 @@ class FixtureValidationTests(TestCase):
             self.assertTrue(user.password.startswith("pbkdf2_sha256$"))
 
     def test_admin_can_manage_catalog(self):
-        self.assertTrue(self.client.login(username="admin@example.com", password="demo-admin-123"))
+        self.assertTrue(self.client.login(username="admin@example.com", password="Demo-admin-123!"))
         for url in ("admin:index", "admin:catalog_category_changelist", "admin:catalog_tag_changelist",
                     "admin:catalog_product_changelist", "admin:catalog_product_add"):
             self.assertEqual(self.client.get(reverse(url)).status_code, 200, url)
@@ -116,7 +120,7 @@ class FixtureValidationTests(TestCase):
             self.assertEqual(user.email, username)
 
     def test_both_shoppers_have_no_admin_access(self):
-        for username, password in (("shopper@example.com", "demo-shopper-123"), ("shopper2@example.com", "demo-shopper2-123")):
+        for username, password in (("shopper@example.com", "Demo-shopper-123!"), ("shopper2@example.com", "Demo-shopper2-123!")):
             with self.subTest(username=username):
                 self.assertTrue(self.client.login(username=username, password=password))
                 response = self.client.get(reverse("admin:index"))
@@ -124,20 +128,48 @@ class FixtureValidationTests(TestCase):
                 self.client.logout()
 
     def test_the_old_usernames_are_gone(self):
-        self.assertFalse(self.client.login(username="admin", password="demo-admin-123"))
-        self.assertFalse(self.client.login(username="shopper", password="demo-shopper-123"))
+        self.assertFalse(self.client.login(username="admin", password="Demo-admin-123!"))
+        self.assertFalse(self.client.login(username="shopper", password="Demo-shopper-123!"))
 
     def test_email_logins_work_in_any_letter_case_through_the_login_form(self):
-        response = self.client.post(reverse("login"), {"username": "Shopper2@Example.com", "password": "demo-shopper2-123"})
+        response = self.client.post(reverse("login"), {"username": "Shopper2@Example.com", "password": "Demo-shopper2-123!"})
         self.assertEqual(response.status_code, 302)
 
     def test_shopper_has_favourites(self):
-        self.assertTrue(self.client.login(username="shopper@example.com", password="demo-shopper-123"))
+        self.assertTrue(self.client.login(username="shopper@example.com", password="Demo-shopper-123!"))
         response = self.client.get(reverse("catalog:my-favorites"))
         self.assertGreaterEqual(len(response.context["products"]), 2)
 
     def test_second_shopper_starts_with_no_favourites(self):
-        self.assertTrue(self.client.login(username="shopper2@example.com", password="demo-shopper2-123"))
+        self.assertTrue(self.client.login(username="shopper2@example.com", password="Demo-shopper2-123!"))
         response = self.client.get(reverse("catalog:my-favorites"))
         self.assertEqual(len(response.context["products"]), 0)
         self.assertFalse(Favorite.objects.filter(user__username="shopper2@example.com").exists())
+
+    def test_demo_passwords_pass_the_signup_rules(self):
+        for email, password in DEMO_ACCOUNTS:
+            with self.subTest(email=email):
+                validate_password(password)
+                self.assertTrue(self.client.login(username=email, password=password))
+                self.client.logout()
+
+    @override_settings(DEBUG=True)
+    def test_login_page_lists_demo_accounts_in_debug(self):
+        response = self.client.get(reverse("login"))
+        self.assertContains(response, "Demo accounts")
+        for email, password in DEMO_ACCOUNTS:
+            self.assertContains(response, email)
+            self.assertContains(response, password)
+
+    @override_settings(DEBUG=False)
+    def test_login_page_hides_demo_accounts_without_debug(self):
+        response = self.client.get(reverse("login"))
+        self.assertNotContains(response, "Demo accounts")
+        for email, password in DEMO_ACCOUNTS:
+            self.assertNotContains(response, email)
+            self.assertNotContains(response, password)
+
+    def test_readme_lists_the_same_demo_accounts(self):
+        readme = (Path(__file__).resolve().parents[2] / "README.md").read_text()
+        for email, password in DEMO_ACCOUNTS:
+            self.assertIn(f"| `{email}` | `{password}` |", readme)

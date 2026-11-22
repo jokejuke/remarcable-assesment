@@ -12,6 +12,12 @@
       <input type="hidden" name="next" value="{{ next }}">
       <button type="submit">Log in</button>
     </form>
+    {% if demo_accounts %}
+    <div class="muted demo-accounts">
+      <strong>Demo accounts</strong>
+      <ul>{% for email, password in demo_accounts %}<li><code>{{ email }}</code> / <code>{{ password }}</code></li>{% endfor %}</ul>
+    </div>
+    {% endif %}
     <p class="muted">New here? <a href="{% url 'signup' %}{% if next %}?next={{ next|urlencode }}{% endif %}">Create an account</a></p>
   </main>
 </div>

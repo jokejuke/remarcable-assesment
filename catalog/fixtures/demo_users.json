@@ -4,7 +4,7 @@
     "pk": 1,
     "fields": {
       "username": "admin@example.com",
-      "password": "pbkdf2_sha256$1000000$vAZtUBShlUgMDqbwHkkb3i$Td4fRsnNNOP2yrqY/TZQDKYUrGabLk3DqUUTZa/TtOE=",
+      "password": "pbkdf2_sha256$1000000$WFy0bHLNZ5FotAwvCBJViA$jGA6XXVtYZUSZRcXu08XvsuXIuVIg9/B0JeFJmgrRAA=",
       "email": "admin@example.com",
       "first_name": "Demo",
       "last_name": "Admin",
@@ -21,7 +21,7 @@
     "pk": 2,
     "fields": {
       "username": "shopper@example.com",
-      "password": "pbkdf2_sha256$1000000$Vuf2AxxYcSJCXxkW31E76g$7ih72g2OENWNUREMLS+ozu9DocAb9aX80+FCE2yJTdY=",
+      "password": "pbkdf2_sha256$1000000$k81uiNhp339bkiddsz2PAz$eWge5HYMzCYNcn7Vi+89gKxm8N3OMVXLlNcuyArVbZs=",
       "email": "shopper@example.com",
       "first_name": "Demo",
       "last_name": "Shopper",
@@ -38,7 +38,7 @@
     "pk": 3,
     "fields": {
       "username": "shopper2@example.com",
-      "password": "pbkdf2_sha256$1000000$1e7fvm64yrHMJ7KfrPk5H9$2lSYT5Rvy5tVytoEP3qnECTbSpbBIyisIznN+F2FaGQ=",
+      "password": "pbkdf2_sha256$1000000$CGGD5Ge4hHMFh6XKv7DpqJ$PyyqSWKYfLEaDq3d6Sg/EKzlnpgzGpG1wUeaLSJ2x+A=",
       "email": "shopper2@example.com",
       "first_name": "Demo",
       "last_name": "Shopper Two",

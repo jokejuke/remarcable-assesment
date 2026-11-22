@@ -1,8 +1,10 @@
 """Sign-up and login by email address. The email is the username (stored in lower case)."""
 
 from django import forms
+from django.conf import settings
 from django.contrib.auth import get_user_model, login
 from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.views import LoginView
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
@@ -11,6 +13,13 @@ from django.shortcuts import redirect, render
 from catalog.views import safe_next
 
 User = get_user_model()
+
+# The accounts in `fixtures/demo_users.json`; the login page lists them when DEBUG is on.
+DEMO_ACCOUNTS = [
+    ("admin@example.com", "Demo-admin-123!"),
+    ("shopper@example.com", "Demo-shopper-123!"),
+    ("shopper2@example.com", "Demo-shopper2-123!"),
+]
 
 
 class EmailAuthenticationForm(AuthenticationForm):
@@ -27,6 +36,15 @@ class EmailAuthenticationForm(AuthenticationForm):
 
     def clean_username(self):
         return self.cleaned_data["username"].strip().lower()
+
+
+class DemoLoginView(LoginView):
+    """The stock login view; with DEBUG on its page also lists the demo accounts."""
+
+    authentication_form = EmailAuthenticationForm
+
+    def get_context_data(self, **kwargs):
+        return super().get_context_data(demo_accounts=DEMO_ACCOUNTS if settings.DEBUG else None, **kwargs)
 
 
 class SignUpForm(forms.Form):
