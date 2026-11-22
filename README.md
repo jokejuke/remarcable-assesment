@@ -6,7 +6,7 @@ A Django project that models **products, categories and tags**, is populated thr
 
 Beyond the brief it adds a nested category tree, stock and prices, favourites, one-click checkout, a JSON API with OpenAPI docs, JWT authentication, caching and security hardening.
 
-**Scope note:** the brief asks for a few hours of work; this goes well beyond it. The required core (models and relationships, admin data entry, the search and filter page, fixtures, README) was built and tested first, and the extensions were added on top in separate steps. Each step is recorded in `openspec/changes/product-catalog/tasks.md`.
+**Scope note:** the brief asks for a few hours of work; this goes well beyond it. The required core (models and relationships, admin data entry, the search and filter page, fixtures, README) was built and tested first, and the extensions were added on top in separate steps. Each step is recorded in `openspec/changes/archive/2026-11-22-product-catalog/tasks.md`.
 
 **Stack:** Python 3.12+ (developed on 3.14), Django 5.2 LTS, SQLite, Django REST framework, django-filter, drf-spectacular, djangorestframework-simplejwt, django-cors-headers, managed with [uv](https://docs.astral.sh/uv/).
 
@@ -65,13 +65,13 @@ The project was planned with [OpenSpec](https://github.com/Fission-AI/OpenSpec).
 
 ```
 openspec/
-  config.yaml                       project-level OpenSpec settings
-  changes/product-catalog/          the change that built this project
-    proposal.md                     why and what
-    design.md                       technical decisions (D1-D13)
-    specs/<capability>/spec.md      required behaviour, as scenarios
-    tasks.md                        the implementation checklist
-  specs/                            living specs (filled when a change is archived)
+  config.yaml                                   project-level OpenSpec settings
+  specs/<capability>/spec.md                    living specs: the current required behaviour (10 capabilities)
+  changes/archive/2026-11-22-product-catalog/   the archived change that built this project
+    proposal.md                                 why and what
+    design.md                                   technical decisions (D1-D13)
+    specs/<capability>/spec.md                  the delta specs it added
+    tasks.md                                    the implementation checklist, with notes
 ```
 
 ## Setup
